@@ -21,7 +21,7 @@
 開啟終端機 (Terminal) 或 CMD，執行：
 
 ```bash
-git clone [https://github.com/yuchan27/network_database_project.git](https://github.com/yuchan27/network_database_project.git)
+git clone https://github.com/yuchan27/network_database_project.git
 cd network_database_project
 
 然後建立虛擬環境 
