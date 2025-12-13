@@ -1,0 +1,9 @@
+<h2>確認訂單</h2>
+<p>商品：{{ product.name }}</p>
+<p>價格：${{ product.price }}</p>
+
+<form method="post">
+    {% csrf_token %}
+    <p>確定要購買嗎？</p>
+    <button type="submit">確認結帳</button>
+</form>

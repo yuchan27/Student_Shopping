@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
+    <div class="container-fluid py-3">
+        <h1 class="display-5 fw-bold">{{ shop.name }}</h1>
+        <p class="fs-4">店長: {{ shop.owner.username }}</p>
+        <p class="text-muted">{{ shop.description|default:"這家店很懶，沒有寫介紹..." }}</p>
+
+        {% if user == shop.owner %}
+            <a href="{% url 'products:add_product' %}" class="btn btn-primary btn-lg">➕ 新增商品</a>
+        {% endif %}
+    </div>
+</div>
+
+<h3 class="mb-3">📦 本店商品</h3>
+<div class="row row-cols-1 row-cols-md-4 g-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">ID: {{ product.custom_sku }}</h6>
+                <p class="card-text fs-5 fw-bold text-danger">${{ product.price }}</p>
+                <p class="card-text">庫存: {{ product.stock }}</p>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-muted">此商店尚未上架商品。</p>
+    {% endfor %}
+</div>
+{% endblock %}

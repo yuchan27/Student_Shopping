@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if not user.is_authenticated %}
+<div class="p-5 mb-4 bg-white rounded-3 shadow-sm text-center border">
+    <div class="container-fluid py-3">
+        <h1 class="display-5 fw-bold text-primary">歡迎來到蝦皮大學生版 👋</h1>
+        <p class="col-md-8 fs-4 mx-auto text-muted">
+            專屬大學生的二手交易平台，使用學校信箱即可快速驗證。
+            趕快加入我們，出清你的舊課本與宿舍雜物！
+        </p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+            <a href="{% url 'users:register' %}" class="btn btn-primary btn-lg px-4 gap-3">
+                🚀 立即註冊會員
+            </a>
+            
+            <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg px-4">
+                會員登入
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row mb-4 align-items-center mt-5">
+    <div class="col">
+        <h2 class="text-primary border-start border-4 border-primary ps-3">🔥 熱門推薦商品</h2>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            
+            <div class="bg-light text-secondary" style="height: 200px; overflow: hidden;">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ product.name }}">
+                {% else %}
+                    <div class="d-flex align-items-center justify-content-center h-100">
+                        <i class="bi bi-box-seam display-1"></i>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-body">
+                <h5 class="card-title text-truncate">{{ product.name }}</h5>
+                <p class="card-text text-danger fw-bold fs-4">${{ product.price }}</p>
+                <p class="card-text text-muted small">
+                    <i class="bi bi-shop"></i> 賣家: {{ product.shop.name|default:"無名商店" }}<br>
+                    庫存: {{ product.stock }}
+                </p>
+                <button class="btn btn-outline-primary w-100">立即購買</button>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <div class="alert alert-warning" role="alert">
+            目前還沒有商品上架，快來成為第一個賣家！
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

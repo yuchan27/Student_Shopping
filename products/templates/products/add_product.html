@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">➕ 上架新商品</h4>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">商品名稱</label>
+                        <input type="text" name="name" class="form-control" placeholder="例如：二手微積分課本" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">價格 (NT$)</label>
+                        <input type="number" name="price" class="form-control" placeholder="輸入金額" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">庫存數量</label>
+                        <input type="number" name="stock" class="form-control" value="1" min="1" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">商品圖片</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <div class="form-text text-muted">支援 jpg, png 格式</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">確認上架</button>
+                        <a href="/" class="btn btn-outline-secondary">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">🏪 申請開設商店</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">商店名稱</label>
+                        <input type="text" name="name" class="form-control" placeholder="例如：資工系二手書局" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">商店介紹</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">立即開店</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
