@@ -17,21 +17,39 @@ def get_sorted_categories():
 def index(request):
     # 取得目前網址上的分類參數 (例如 ?category=1)
     category_id = request.GET.get('category')
+    # [新增] 取得排序參數，預設為 'newest'
+    sort_by = request.GET.get('sort', 'newest')
 
     if category_id:
         # 如果有點擊分類，就只抓該分類的商品
-        products = Product.objects.filter(category_id=category_id).order_by('-id')
+        products = Product.objects.filter(category_id=category_id)
     else:
-        # 沒點分類，就顯示全部 (限制 20 筆)
-        products = Product.objects.all().order_by('-id')[:20]
+        # 沒點分類，就顯示全部
+        products = Product.objects.all()
 
-    # [修改] 使用我們自定義的排序邏輯，而不是直接用 objects.all()
+    # [新增] 這裡加入排序邏輯
+    if sort_by == 'price_asc':      # 價格由低到高
+        products = products.order_by('price')
+    elif sort_by == 'price_desc':   # 價格由高到低
+        products = products.order_by('-price')
+    elif sort_by == 'name_asc':     # 名稱 A-Z
+        products = products.order_by('name')
+    elif sort_by == 'name_desc':    # 名稱 Z-A
+        products = products.order_by('-name')
+    else:                           # 預設：最新上架 (ID 倒序)
+        products = products.order_by('-id')
+
+    # [注意] 切片 (限制筆數) 必須放在排序之後！
+    products = products[:20]
+
+    # 使用我們自定義的分類排序邏輯
     categories = get_sorted_categories()
 
     return render(request, 'products/index.html', {
         'products': products, 
-        'categories': categories, # 傳分類給模板
-        'current_category': int(category_id) if category_id else None # 轉成 int 以便模板比對
+        'categories': categories, 
+        'current_category': int(category_id) if category_id else None,
+        'current_sort': sort_by # [新增] 把現在的排序狀態傳回前端
     })
 
 @login_required
@@ -81,6 +99,8 @@ def delete_product(request, product_id):
 # 搜尋功能
 def search(request):
     query = request.GET.get('q')
+    # [新增] 搜尋頁面也要能排序
+    sort_by = request.GET.get('sort', 'newest')
     search_type = "一般搜尋"
     
     if query:
@@ -94,23 +114,37 @@ def search(request):
                 Q(category__name__icontains=word)
             )
 
-        products = Product.objects.filter(search_condition).order_by('-id')
+        products = Product.objects.filter(search_condition)
+        
+        # [新增] 如果有找到結果，就進行排序 (如果是 AI 搜尋就不排序，保持關聯度)
+        if products.exists():
+            if sort_by == 'price_asc':
+                products = products.order_by('price')
+            elif sort_by == 'price_desc':
+                products = products.order_by('-price')
+            elif sort_by == 'name_asc':
+                products = products.order_by('name')
+            elif sort_by == 'name_desc':
+                products = products.order_by('-name')
+            else:
+                products = products.order_by('-id')
 
         # 如果關鍵字找不到，啟動 AI
-        if not products.exists():
+        else:
             print("關鍵字找不到，啟動 AI 語意搜尋...")
             products = semantic_search_products(query)
             search_type = "💡 AI 智慧推薦"
+            # 注意：這裡我不對 AI 結果做額外排序，因為 AI 通常是依照「相似度」排序的
             
     else:
         products = Product.objects.none()
     
-    # [修改] 搜尋頁面也要顯示分類側邊欄 (同樣要讓雜項在最下面)
     categories = get_sorted_categories()
 
     return render(request, 'products/index.html', {
         'products': products, 
         'query': query,
         'search_type': search_type,
-        'categories': categories # 傳分類給模板
+        'categories': categories,
+        'current_sort': sort_by # [新增] 傳回排序狀態
     })

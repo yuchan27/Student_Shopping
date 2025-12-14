@@ -61,6 +61,30 @@
     </div>
 
     <div class="col-md-9">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded border">
+            <span class="text-muted small fw-bold">
+                <i class="bi bi-box-seam"></i> 共找到 {{ products|length }} 樣商品
+            </span>
+
+            <form method="GET" class="d-flex align-items-center">
+                {% if current_category %}
+                    <input type="hidden" name="category" value="{{ current_category }}">
+                {% endif %}
+                {% if query %}
+                    <input type="hidden" name="q" value="{{ query }}">
+                {% endif %}
+
+                <label for="sort" class="me-2 text-nowrap small text-muted fw-bold">排序：</label>
+                <select name="sort" id="sort" class="form-select form-select-sm border-secondary" style="width: auto;" onchange="this.form.submit()">
+                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>最新上架</option>
+                    <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>價格：低 → 高</option>
+                    <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>價格：高 → 低</option>
+                    <option value="name_asc" {% if current_sort == 'name_asc' %}selected{% endif %}>名稱：A → Z</option>
+                    <option value="name_desc" {% if current_sort == 'name_desc' %}selected{% endif %}>名稱：Z → A</option>
+                </select>
+            </form>
+        </div>
         <div class="row row-cols-1 row-cols-md-3 g-4">
             {% for product in products %}
             <div class="col">
@@ -107,10 +131,10 @@
                             <div class="position-relative" style="z-index: 2;">
                                 {% if product.stock > 0 %}
                                     <a href="{% url 'orders:add_to_cart' product.id %}" class="btn btn-outline-primary btn-sm me-1" title="加入購物車">
-                                        <i class="bi bi-cart-plus"></i>
+                                        加入購物車<i class="bi bi-cart-plus"></i>
                                     </a>
                                     <a href="{% url 'orders:create_order' product.id %}" class="btn btn-primary btn-sm">
-                                        購買
+                                        點我購買~
                                     </a>
                                 {% else %}
                                     <button class="btn btn-secondary btn-sm" disabled>補貨中</button>

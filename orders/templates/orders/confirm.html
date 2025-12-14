@@ -1,9 +1,83 @@
-<h2>確認訂單</h2>
-<p>商品：{{ product.name }}</p>
-<p>價格：${{ product.price }}</p>
+{% extends 'base.html' %}
 
-<form method="post">
-    {% csrf_token %}
-    <p>確定要購買嗎？</p>
-    <button type="submit">確認結帳</button>
-</form>
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-primary text-white text-center py-3 rounded-top-4">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-bag-check-fill"></i> 確認訂單內容</h4>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="flex-shrink-0 me-3">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="rounded border" style="width: 80px; height: 80px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light rounded border d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="bi bi-box-seam text-secondary fs-2"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex-grow-1 overflow-hidden">
+                            <h5 class="fw-bold mb-1 text-truncate">{{ product.name }}</h5>
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-shop"></i> 賣家: {{ product.shop.name }}
+                            </p>
+                            <span class="badge bg-light text-dark border">庫存: {{ product.stock }}</span>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="phone" class="form-label fw-bold small text-muted">訂購人聯絡電話</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" name="phone" id="phone" class="form-control" placeholder="請輸入手機號碼" required>
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-3 rounded mb-4">
+                            <div class="d-flex justify-content-between mb-2 small text-muted">
+                                <span>商品單價</span>
+                                <span>${{ product.price }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 small text-muted">
+                                <span>購買數量</span>
+                                <span>1</span>
+                            </div>
+                            <hr class="my-2 dashed">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">總付款金額</span>
+                                <span class="text-danger fw-bold fs-4">${{ product.price }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm">
+                                <i class="bi bi-lightning-fill"></i> 確認立即購買
+                            </button>
+
+                            <a href="{% url 'orders:add_to_cart' product.id %}" class="btn btn-outline-primary btn-lg fw-bold shadow-sm">
+                                <i class="bi bi-cart-plus"></i> 先加入購物車
+                            </a>
+                            
+                            <a href="javascript:history.back()" class="btn btn-link text-secondary text-decoration-none mt-2">
+                                取消，再逛逛
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3 text-muted small">
+                <i class="bi bi-shield-lock"></i> 交易過程由系統全程加密保護
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
