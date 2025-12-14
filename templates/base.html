@@ -3,92 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>蝦皮大學生版</title>
+    <title>大學生 Shopping!</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
     <style>
-        body { background-color: #f8f9fa; }
-        .navbar { box-shadow: 0 2px 4px rgba(0,0,0,.1); }
-        .card { transition: transform 0.2s; }
-        .card:hover { transform: translateY(-5px); }
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.4rem; /*稍微調小一點點*/
+        }
+        /* 讓導覽列項目垂直置中 */
+        .nav-link {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 sticky-top">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/">🛒 大學生Shopping!</a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
+        <div class="container-fluid px-3"> <a class="navbar-brand me-3" href="/">
+                <i class="bi bi-cart4"></i> 
+                <span class="d-none d-sm-inline">大學生Shopping!</span> </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="collapse navbar-collapse" id="navbarContent">
                 
-                <form class="d-flex mx-auto my-2 my-lg-0 w-50" action="{% url 'products:search' %}" method="get">
-                    <input class="form-control me-2" type="search" name="q" placeholder="搜尋商品或商店..." aria-label="Search" value="{{ query|default:'' }}">
-                    <button class="btn btn-warning text-dark fw-bold" type="submit">搜尋</button>
+                <form class="d-flex mx-auto my-2 my-lg-0 flex-grow-1" style="max-width: 500px;" action="{% url 'products:search' %}" method="GET">
+                    <input class="form-control me-1" type="search" name="q" value="{{ query|default:'' }}" placeholder="搜尋..." aria-label="Search">
+                    <button class="btn btn-warning fw-bold text-nowrap" type="submit">
+                        <i class="bi bi-search"></i> <span class="d-none d-md-inline">搜尋</span>
+                    </button>
                 </form>
 
-                <ul class="navbar-nav ms-auto align-items-center">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                    
                     {% if user.is_authenticated %}
                         
-                        <li class="nav-item dropdown me-2">
-                            <a class="nav-link dropdown-toggle text-light fw-bold" href="#" role="button" data-bs-toggle="dropdown">
-                                Hi, {{ user.username }}
+                        {% if user.is_staff %}
+                        <li class="nav-item me-1">
+                            <a href="{% url 'users:admin_dashboard' %}" class="btn btn-warning btn-sm fw-bold text-dark d-flex align-items-center">
+                                <i class="bi bi-lightning-fill"></i> 
+                                <span class="d-none d-xl-inline ms-1">後台</span> </a>
+                        </li>
+                        {% endif %}
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{% url 'orders:view_cart' %}" title="購物車">
+                                <i class="bi bi-cart-fill fs-5"></i>
+                                <span class="d-none d-xl-inline ms-1">購物車</span> </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{% url 'orders:my_orders' %}" title="我的訂單">
+                                <i class="bi bi-card-list fs-5"></i>
+                                <span class="d-none d-xl-inline ms-1">訂單</span>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'users:change_password' %}">🔒 修改密碼</a></li>
+                        </li>
+
+                        {% if user.shop %}
+                            <li class="nav-item border-start border-white border-opacity-50 mx-2 ps-2 d-none d-lg-block"></li> <li class="nav-item">
+                                <a class="nav-link text-white" href="{% url 'shops:shop_detail' user.shop.id %}" title="我的商店">
+                                    <i class="bi bi-shop fs-5"></i>
+                                    <span class="d-none d-xl-inline ms-1">商店</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-white" href="{% url 'products:add_product' %}" title="商品上架">
+                                    <i class="bi bi-plus-circle-fill fs-5"></i>
+                                    <span class="d-none d-xl-inline ms-1">上架</span>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item ms-2">
+                                <a class="btn btn-outline-light btn-sm text-nowrap" href="{% url 'shops:create_shop' %}">
+                                    <i class="bi bi-shop-window"></i> 成為賣家
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        <li class="nav-item dropdown ms-2">
+                            <a class="nav-link dropdown-toggle text-white fw-bold bg-white bg-opacity-10 rounded px-2" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle me-1"></i>
+                                <span class="d-none d-lg-inline">{{ user.username }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow">
+                                <li><a class="dropdown-item" href="#">會員中心</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <form action="{% url 'logout' %}" method="post" class="px-3 py-1">
+                                    <form action="{% url 'logout' %}" method="post">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">登出</button>
+                                        <button type="submit" class="dropdown-item text-danger">登出</button>
                                     </form>
                                 </li>
                             </ul>
                         </li>
 
-                        {% if user.is_superuser %}
-                            <li class="nav-item">
-                                <a class="nav-link text-warning fw-bold border border-warning rounded px-2 me-2" href="{% url 'users:admin_dashboard' %}">
-                                    ⚡ 管理後台
-                                </a>
-                            </li>
-                        {% endif %}
-
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'orders:view_cart' %}">
-                                <i class="bi bi-cart-fill"></i> 購物車
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'orders:my_orders' %}">
-                                <i class="bi bi-card-list"></i> 訂單
-                            </a>
-                        </li>
-
-                        <li class="nav-item text-white-50 mx-2 d-none d-lg-block">|</li>
-                        
-                        {% if user.shop %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'shops:shop_detail' user.shop.id %}">🏠 我的商店</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'products:add_product' %}">➕ 上架</a>
-                            </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'shops:create_shop' %}">🏪 我要開店</a>
-                            </li>
-                        {% endif %}
-
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'users:register' %}">註冊</a>
+                        <li class="nav-item ms-2">
+                            <a class="nav-link text-white" href="{% url 'login' %}">登入</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">會員登入</a>
+                        <li class="nav-item ms-2">
+                            <a class="btn btn-warning fw-bold" href="{% url 'users:register' %}">註冊</a>
                         </li>
                     {% endif %}
                 </ul>
@@ -96,10 +118,10 @@
         </div>
     </nav>
 
-    <div class="container">
+    <div class="container py-4">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -109,6 +131,12 @@
         {% block content %}
         {% endblock %}
     </div>
+
+    <footer class="bg-dark text-white text-center py-3 mt-auto">
+        <div class="container">
+            <small>&copy; 2025 大學生Shopping! 版權所有</small>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

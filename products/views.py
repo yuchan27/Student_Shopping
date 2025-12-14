@@ -1,13 +1,38 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q, Case, When, Value, IntegerField # [新增] 引入更多資料庫工具
-from .models import Product
+from django.db.models import Q, Case, When, Value, IntegerField
+from .models import Product, Category
 from .forms import ProductForm
-from .search_engine import semantic_search_products #向量搜尋 
+from .search_engine import semantic_search_products # 向量搜尋 
+
+# [Helper 函式] 用來處理分類排序：把「雜項」排到最後
+def get_sorted_categories():
+    # 1. 抓出所有「不是」雜項的分類，依照名稱(或id)排序
+    normal_cats = Category.objects.exclude(name='雜項').order_by('id')
+    # 2. 單獨抓出「雜項」分類
+    misc_cat = Category.objects.filter(name='雜項')
+    # 3. 合併成一個列表 (雜項在最後)
+    return list(normal_cats) + list(misc_cat)
 
 def index(request):
-    products = Product.objects.all().order_by('-id')[:20]
-    return render(request, 'products/index.html', {'products': products})
+    # 取得目前網址上的分類參數 (例如 ?category=1)
+    category_id = request.GET.get('category')
+
+    if category_id:
+        # 如果有點擊分類，就只抓該分類的商品
+        products = Product.objects.filter(category_id=category_id).order_by('-id')
+    else:
+        # 沒點分類，就顯示全部 (限制 20 筆)
+        products = Product.objects.all().order_by('-id')[:20]
+
+    # [修改] 使用我們自定義的排序邏輯，而不是直接用 objects.all()
+    categories = get_sorted_categories()
+
+    return render(request, 'products/index.html', {
+        'products': products, 
+        'categories': categories, # 傳分類給模板
+        'current_category': int(category_id) if category_id else None # 轉成 int 以便模板比對
+    })
 
 @login_required
 def add_product(request):
@@ -25,7 +50,6 @@ def add_product(request):
         form = ProductForm()
     return render(request, 'products/add_product.html', {'form': form})
 
-# [這就是消失的編輯功能]
 @login_required
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -41,7 +65,6 @@ def edit_product(request, product_id):
         form = ProductForm(instance=product)
     return render(request, 'products/edit_product.html', {'form': form, 'product': product})
 
-# [這就是消失的刪除功能]
 @login_required
 def delete_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -55,35 +78,39 @@ def delete_product(request, product_id):
     
     return render(request, 'products/delete_confirm.html', {'product': product})
 
-# [新增] 搜尋功能
+# 搜尋功能
 def search(request):
     query = request.GET.get('q')
-    search_type = "一般搜尋" # 用來告訴前端現在是用哪種搜尋
+    search_type = "一般搜尋"
     
     if query:
-        # --- 第一階段：原本的精準關鍵字搜尋 ---
         keywords = query.split()
         search_condition = Q()
         for word in keywords:
             search_condition &= (
                 Q(name__icontains=word) | 
                 Q(description__icontains=word) | 
-                Q(shop__name__icontains=word)
+                Q(shop__name__icontains=word) |
+                Q(category__name__icontains=word)
             )
 
         products = Product.objects.filter(search_condition).order_by('-id')
 
-        # --- 第二階段：如果關鍵字找不到東西，就啟動 AI 向量搜尋 ---
+        # 如果關鍵字找不到，啟動 AI
         if not products.exists():
-            print("關鍵字找不到，啟動 AI 語意搜尋...") # 可以在終端機看日誌
+            print("關鍵字找不到，啟動 AI 語意搜尋...")
             products = semantic_search_products(query)
-            search_type = "💡 AI 智慧推薦" 
+            search_type = "💡 AI 智慧推薦"
             
     else:
         products = Product.objects.none()
+    
+    # [修改] 搜尋頁面也要顯示分類側邊欄 (同樣要讓雜項在最下面)
+    categories = get_sorted_categories()
 
     return render(request, 'products/index.html', {
         'products': products, 
         'query': query,
-        'search_type': search_type # 傳給前端顯示
+        'search_type': search_type,
+        'categories': categories # 傳分類給模板
     })

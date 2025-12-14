@@ -34,19 +34,10 @@ def create_order(request, product_id):
 
         return redirect('orders:my_orders')
 
-# 其他 view (my_orders, seller_dashboard) 應該還在，不用動
 @login_required
 def my_orders(request):
     orders = Order.objects.filter(buyer=request.user).order_by('-created_at')
     return render(request, 'orders/my_orders.html', {'orders': orders})
-
-@login_required
-def seller_dashboard(request):
-    if not hasattr(request.user, 'shop'):
-        return redirect('shops:create_shop')
-    shop = request.user.shop
-    orders = Order.objects.filter(product__shop=shop).order_by('-created_at')
-    return render(request, 'orders/seller_dashboard.html', {'orders': orders})
 
 @login_required
 def add_to_cart(request, product_id):

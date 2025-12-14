@@ -5,7 +5,7 @@
 {% if not user.is_authenticated %}
 <div class="p-5 mb-4 bg-white rounded-3 shadow-sm text-center border">
     <div class="container-fluid py-3">
-        <h1 class="display-5 fw-bold text-primary">歡迎來到大學生Shopping! 👋</h1>
+        <h1 class="display-5 fw-bold text-primary">歡迎來到蝦皮大學生版 👋</h1>
         <p class="col-md-8 fs-4 mx-auto text-muted">
             專屬大學生的二手交易平台，使用學校信箱即可快速驗證。
             趕快加入我們，出清你的舊課本與宿舍雜物！
@@ -18,7 +18,7 @@
 </div>
 {% endif %}
 
-<div class="row mb-4 align-items-center mt-5">
+<div class="row mb-4 align-items-center mt-4">
     <div class="col-md-8">
         {% if query %}
             <h2 class="text-primary border-start border-4 border-primary ps-3">
@@ -27,11 +27,14 @@
                     {{ search_type|default:"一般搜尋" }}
                 </span>
             </h2>
+        {% elif current_category %}
+             <h2 class="text-primary border-start border-4 border-primary ps-3">
+                 📂 分類瀏覽
+             </h2>
         {% else %}
             <h2 class="text-primary border-start border-4 border-primary ps-3">🔥 熱門推薦商品</h2>
         {% endif %}
     </div>
-    
     <div class="col-md-4 text-end">
         <a href="{% url 'orders:view_cart' %}" class="btn btn-outline-primary">
             <i class="bi bi-cart-fill"></i> 我的購物車
@@ -39,63 +42,106 @@
     </div>
 </div>
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
-    {% for product in products %}
-    <div class="col">
-        <div class="card h-100 shadow-sm">
-            <div class="bg-light text-secondary position-relative" style="height: 200px; overflow: hidden;">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" class="w-100 h-100 object-fit-cover">
-                {% else %}
-                    <div class="d-flex align-items-center justify-content-center h-100">
-                        <i class="bi bi-box-seam display-1"></i>
-                    </div>
-                {% endif %}
-                
-                {% if product.stock == 0 %}
-                <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center">
-                    <span class="badge bg-danger fs-3">已售完</span>
-                </div>
-                {% endif %}
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="list-group shadow-sm sticky-top" style="top: 100px; z-index: 1;">
+            <div class="list-group-item bg-light fw-bold text-dark">
+                <i class="bi bi-grid-fill"></i> 商品分類
             </div>
-            
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title text-truncate">{{ product.name }}</h5>
-                <p class="card-text text-danger fw-bold fs-4">${{ product.price }}</p>
-                <p class="card-text text-muted small">
-                    <i class="bi bi-shop"></i> 賣家: {{ product.shop.name|default:"無名商店" }}<br>
-                    庫存: {{ product.stock }}
-                </p>
-                
-                <div class="mt-auto d-grid gap-2">
-                    {% if product.stock > 0 %}
-                        <a href="{% url 'orders:create_order' product.id %}" class="btn btn-primary">
-                            立即購買
-                        </a>
+            <a href="{% url 'products:index' %}" class="list-group-item list-group-item-action {% if not current_category %}active{% endif %}">
+                全部商品
+            </a>
+            {% for cat in categories %}
+                <a href="{% url 'products:index' %}?category={{ cat.id }}" 
+                   class="list-group-item list-group-item-action {% if current_category|stringformat:'s' == cat.id|stringformat:'s' %}active{% endif %}">
+                    {{ cat.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="row"> {% for product in products %}
+            <div class="col-12 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="row g-0 align-items-center">
                         
-                        <a href="{% url 'orders:add_to_cart' product.id %}" class="btn btn-outline-primary">
-                            <i class="bi bi-cart-plus"></i> 加入購物車
-                        </a>
+                        <div class="col-md-3 position-relative">
+                            <div style="height: 200px; overflow: hidden;" class="bg-light d-flex align-items-center justify-content-center rounded-start">
+                                {% if product.image %}
+                                    <img src="{{ product.image.url }}" class="img-fluid rounded-start" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                    <i class="bi bi-box-seam text-secondary" style="font-size: 3rem;"></i>
+                                {% endif %}
+                                
+                                {% if product.stock == 0 %}
+                                <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center">
+                                    <span class="badge bg-danger fs-5">已售完</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="col-md-9">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        {% if product.category %}
+                                            <span class="badge bg-info text-dark mb-2">{{ product.category.name }}</span>
+                                        {% endif %}
+                                        <h5 class="card-title fw-bold mb-1">
+                                            <a href="{% url 'orders:create_order' product.id %}" class="text-decoration-none text-dark stretched-link">
+                                                {{ product.name }}
+                                            </a>
+                                        </h5>
+                                    </div>
+                                    <h3 class="text-danger fw-bold mb-0">${{ product.price }}</h3>
+                                </div>
+
+                                <p class="card-text text-muted mb-3">
+                                    {{ product.description|default:"暫無商品描述..."|truncatechars:80 }}
+                                </p>
+
+                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                    <small class="text-muted">
+                                        <i class="bi bi-shop"></i> {{ product.shop.name|default:"無名商店" }} 
+                                        <span class="mx-1">|</span> 
+                                        庫存: {{ product.stock }}
+                                    </small>
+
+                                    <div class="position-relative" style="z-index: 2;">
+                                        {% if product.stock > 0 %}
+                                            <a href="{% url 'orders:add_to_cart' product.id %}" class="btn btn-outline-primary btn-sm me-1">
+                                                <i class="bi bi-cart-plus"></i> 加入購物車
+                                            </a>
+                                            <a href="{% url 'orders:create_order' product.id %}" class="btn btn-primary btn-sm">
+                                                立即購買
+                                            </a>
+                                        {% else %}
+                                            <button class="btn btn-secondary btn-sm" disabled>補貨中</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="alert alert-warning" role="alert">
+                    {% if query %}
+                        <h4>找不到符合「{{ query }}」的商品 😅</h4>
+                        <p>試試看其他關鍵字，或者我們的 AI 會努力幫你聯想！</p>
+                        <a href="/" class="btn btn-outline-dark mt-2">回到所有商品</a>
                     {% else %}
-                        <button type="button" class="btn btn-secondary" disabled>補貨中</button>
+                        目前這個分類還沒有商品上架，快來成為第一個賣家！
                     {% endif %}
                 </div>
             </div>
+            {% endfor %}
         </div>
     </div>
-    {% empty %}
-    <div class="col-12 text-center py-5">
-        <div class="alert alert-warning" role="alert">
-            {% if query %}
-                <h4>找不到符合「{{ query }}」的商品 😅</h4>
-                <p>試試看其他關鍵字，或者我們的 AI 會努力幫你聯想！</p>
-                <a href="/" class="btn btn-outline-dark mt-2">回到所有商品</a>
-            {% else %}
-                目前還沒有商品上架，快來成為第一個賣家！
-            {% endif %}
-        </div>
-    </div>
-    {% endfor %}
 </div>
 
 {% endblock %}
