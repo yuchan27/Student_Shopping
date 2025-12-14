@@ -28,6 +28,14 @@
                             <span class="nav-link text-light fw-bold">Hi, {{ user.username }}</span>
                         </li>
 
+                        {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link text-warning fw-bold border border-warning rounded px-2 me-2" href="{% url 'users:admin_dashboard' %}">
+                                    ⚡ 總管理後台
+                                </a>
+                            </li>
+                        {% endif %}
+
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'orders:view_cart' %}">
                                 <i class="bi bi-cart-fill"></i> 購物車

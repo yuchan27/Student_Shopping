@@ -116,3 +116,17 @@ def checkout_cart(request):
         return redirect('orders:my_orders')
 
     return render(request, 'orders/checkout_cart.html', {'cart_items': cart_items})
+
+@login_required
+def seller_dashboard(request):
+    # 1. 確保使用者有開店
+    if not hasattr(request.user, 'shop'):
+        return redirect('shops:create_shop')
+    
+    shop = request.user.shop
+    
+    # 2. 搜尋訂單：條件是 "商品的商店 = 我的商店"
+    # select_related 是為了優化效能，一次把買家和商品資料抓出來
+    orders = Order.objects.filter(product__shop=shop).select_related('product', 'buyer').order_by('-created_at')
+
+    return render(request, 'orders/seller_dashboard.html', {'orders': orders})
