@@ -15,23 +15,44 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4 sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="/">🛒 蝦皮大學生版</a>
+            <a class="navbar-brand fw-bold" href="/">🛒 蝦皮大學生版</a>
+            
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
+                
+                <form class="d-flex mx-auto my-2 my-lg-0 w-50" action="{% url 'products:search' %}" method="get">
+                    <input class="form-control me-2" type="search" name="q" placeholder="搜尋商品或商店..." aria-label="Search" value="{{ query|default:'' }}">
+                    <button class="btn btn-warning text-dark fw-bold" type="submit">搜尋</button>
+                </form>
+
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if user.is_authenticated %}
-                        <li class="nav-item me-2">
-                            <span class="nav-link text-light fw-bold">Hi, {{ user.username }}</span>
+                        
+                        <li class="nav-item dropdown me-2">
+                            <a class="nav-link dropdown-toggle text-light fw-bold" href="#" role="button" data-bs-toggle="dropdown">
+                                Hi, {{ user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'users:change_password' %}">🔒 修改密碼</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{% url 'logout' %}" method="post" class="px-3 py-1">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">登出</button>
+                                    </form>
+                                </li>
+                            </ul>
                         </li>
 
                         {% if user.is_superuser %}
                             <li class="nav-item">
                                 <a class="nav-link text-warning fw-bold border border-warning rounded px-2 me-2" href="{% url 'users:admin_dashboard' %}">
-                                    ⚡ 總管理後台
+                                    ⚡ 管理後台
                                 </a>
                             </li>
                         {% endif %}
@@ -43,7 +64,7 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'orders:my_orders' %}">
-                                <i class="bi bi-card-list"></i> 我的訂單
+                                <i class="bi bi-card-list"></i> 訂單
                             </a>
                         </li>
 
@@ -61,13 +82,6 @@
                                 <a class="nav-link" href="{% url 'shops:create_shop' %}">🏪 我要開店</a>
                             </li>
                         {% endif %}
-                        
-                        <li class="nav-item ms-2">
-                            <form action="{% url 'logout' %}" method="post" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-light border-0">登出</button>
-                            </form>
-                        </li>
 
                     {% else %}
                         <li class="nav-item">
@@ -85,7 +99,7 @@
     <div class="container">
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>

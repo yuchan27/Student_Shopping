@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q  # [新增] 引入 Q，這可以用來做進階搜尋
 from .models import Product
 from .forms import ProductForm
 
 def index(request):
-    products = Product.objects.all().order_by('-id')[:10]
+    products = Product.objects.all().order_by('-id')[:20]
     return render(request, 'products/index.html', {'products': products})
 
 @login_required
@@ -52,3 +53,18 @@ def delete_product(request, product_id):
         return redirect('shops:shop_detail', shop_id=shop_id)
     
     return render(request, 'products/delete_confirm.html', {'product': product})
+
+# [新增] 搜尋功能
+def search(request):
+    query = request.GET.get('q') # 取得網址上的搜尋關鍵字 (?q=...)
+    
+    if query:
+        # 搜尋邏輯：商品名稱 包含 query  OR  商店名稱 包含 query
+        products = Product.objects.filter(
+            Q(name__icontains=query) | Q(shop__name__icontains=query)
+        )
+    else:
+        products = Product.objects.none() # 沒輸入就什麼都不顯示
+
+    # 我們直接重複使用首頁的模板來顯示結果
+    return render(request, 'products/index.html', {'products': products, 'query': query})
