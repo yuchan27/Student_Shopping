@@ -2,25 +2,37 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from products.models import Product
 from django.contrib import messages
+from django.db import transaction
 from .models import Order, CartItem 
 
 @login_required
+@transaction.atomic
 def create_order(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
     
     # [情況 A] 剛點進來 (GET) -> 顯示確認頁面
     if request.method == 'GET':
+        # 這裡只需要普通讀取，讓使用者看到商品資訊即可
+        product = get_object_or_404(Product, id=product_id)
         return render(request, 'orders/confirm.html', {'product': product})
     
     # [情況 B] 按下確認購買 (POST) -> 建立訂單
     elif request.method == 'POST':
+        try:
+            # [關鍵修改] 使用 select_for_update() 鎖住這筆商品
+            # 這時候資料庫會把這行資料鎖起來，其他人要讀取必須排隊等待
+            product = Product.objects.select_for_update().get(id=product_id)
+        except Product.DoesNotExist:
+            return render(request, 'orders/error.html', {'message': '商品不存在或已被刪除！'})
+
         buy_amount = 1
+
+        # 再次檢查庫存 (這是最重要的一步，防止排隊的人買到沒貨的商品)
         if product.stock < buy_amount:
-            # 記得確認你有沒有 orders/error.html，沒有的話這裡會報錯
-            return render(request, 'orders/error.html', {'message': '庫存不足！'})
+            return render(request, 'orders/error.html', {'message': '抱歉！剛好被搶光了，下次請早！'})
 
         user_phone = request.POST.get('phone')
 
+        # 建立訂單
         Order.objects.create(
             buyer=request.user,
             product=product,
@@ -29,11 +41,12 @@ def create_order(request, product_id):
             phone=user_phone
         )
 
+        # 扣庫存
         product.stock -= buy_amount
-        product.save()
+        product.save() # 儲存後，鎖定會自動解除，換下一位排隊的人進來處理
 
         return redirect('orders:my_orders')
-
+    
 @login_required
 def my_orders(request):
     orders = Order.objects.filter(buyer=request.user).order_by('-created_at')

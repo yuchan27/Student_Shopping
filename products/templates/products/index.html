@@ -61,7 +61,8 @@
     </div>
 
     <div class="col-md-9">
-        <div class="row"> {% for product in products %}
+        <div class="row"> 
+            {% for product in products %}
             <div class="col-12 mb-3">
                 <div class="card shadow-sm h-100">
                     <div class="row g-0 align-items-center">
@@ -89,12 +90,19 @@
                                         {% if product.category %}
                                             <span class="badge bg-info text-dark mb-2">{{ product.category.name }}</span>
                                         {% endif %}
+                                        
                                         <h5 class="card-title fw-bold mb-1">
-                                            <a href="{% url 'orders:create_order' product.id %}" class="text-decoration-none text-dark stretched-link">
-                                                {{ product.name }}
-                                            </a>
+                                            {% if product.stock > 0 %}
+                                                <a href="{% url 'orders:create_order' product.id %}" class="text-decoration-none text-dark stretched-link">
+                                                    {{ product.name }}
+                                                </a>
+                                            {% else %}
+                                                <span class="text-dark">
+                                                    {{ product.name }}
+                                                </span>
+                                            {% endif %}
                                         </h5>
-                                    </div>
+                                        </div>
                                     <h3 class="text-danger fw-bold mb-0">${{ product.price }}</h3>
                                 </div>
 
