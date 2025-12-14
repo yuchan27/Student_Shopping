@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'shops',
     'products',
     'orders',
+    #自動刪除圖片
+    'django_cleanup.apps.CleanupConfig',
 ]
 
 MIDDLEWARE = [
