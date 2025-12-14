@@ -31,6 +31,9 @@ venv\Scripts\activate
 建立完成且設定為venv(左邊會看到一個venv) 
 ex: (venv) PS C:\Users\> 
 
+接著引入所有依賴whl
+pip install -r requirements.txt
+
 初始化資料庫
 python manage.py migrate
 設定帳號密碼和gmail(請測試用(自己填)@nkust.edu.tw)
