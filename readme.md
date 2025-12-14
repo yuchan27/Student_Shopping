@@ -40,7 +40,7 @@ venv\Scripts\activate
 建立完成且設定為venv(左邊會看到一個venv) 
 ex: (venv) PS C:\Users\> 
 
-接著引入所有依賴whl
+接著引入所有依賴
 pip install -r requirements.txt
 
 初始化資料庫

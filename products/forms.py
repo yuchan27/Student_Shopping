@@ -1,6 +1,20 @@
 from django import forms
-from .models import Product
+from .models import Product, Category
 
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': '例如：3C周邊、教科書、生活用品...'
+            }),
+        }
+        labels = {
+            'name': '分類名稱',
+        }
+        
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product

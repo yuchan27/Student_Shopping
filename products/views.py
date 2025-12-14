@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Q, Case, When, Value, IntegerField
 from .models import Product, Category
-from .forms import ProductForm
+from .forms import ProductForm, CategoryForm
 from .search_engine import semantic_search_products # 向量搜尋 
 
 # [Helper 函式] 用來處理分類排序：把「雜項」排到最後
@@ -147,4 +147,22 @@ def search(request):
         'search_type': search_type,
         'categories': categories,
         'current_sort': sort_by # [新增] 傳回排序狀態
+    })
+@login_required
+@user_passes_test(lambda u: u.is_staff) # 檢查：必須是管理員
+def add_category(request):
+    # 先抓出目前所有的分類 (讓管理員參考，避免重複)
+    categories = Category.objects.all().order_by('-id')
+
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('products:add_category') # 新增完留在同一頁，方便繼續加
+    else:
+        form = CategoryForm()
+
+    return render(request, 'products/add_category.html', {
+        'form': form,
+        'categories': categories
     })

@@ -25,9 +25,11 @@
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm">
-        <div class="container-fluid px-3"> <a class="navbar-brand me-3" href="/">
+        <div class="container-fluid px-3"> 
+            <a class="navbar-brand me-3" href="/">
                 <i class="bi bi-cart4"></i> 
-                <span class="d-none d-sm-inline">大學生Shopping!</span> </a>
+                <span class="d-none d-sm-inline">大學生Shopping!</span> 
+            </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
                 <span class="navbar-toggler-icon"></span>
@@ -47,17 +49,24 @@
                     {% if user.is_authenticated %}
                         
                         {% if user.is_staff %}
-                        <li class="nav-item me-1">
-                            <a href="{% url 'users:admin_dashboard' %}" class="btn btn-warning btn-sm fw-bold text-dark d-flex align-items-center">
+                        <li class="nav-item me-1 d-flex">
+                            <a href="{% url 'users:admin_dashboard' %}" class="btn btn-warning btn-sm fw-bold text-dark d-flex align-items-center me-1" title="使用者管理">
                                 <i class="bi bi-lightning-fill"></i> 
-                                <span class="d-none d-xl-inline ms-1">後台</span> </a>
+                                <span class="d-none d-xl-inline ms-1">後台</span> 
+                            </a>
+
+                            <a href="{% url 'products:add_category' %}" class="btn btn-info btn-sm fw-bold text-white d-flex align-items-center" title="新增/管理分類">
+                                <i class="bi bi-folder-plus"></i> 
+                                <span class="d-none d-xl-inline ms-1">分類</span> 
+                            </a>
                         </li>
                         {% endif %}
 
                         <li class="nav-item">
                             <a class="nav-link text-white" href="{% url 'orders:view_cart' %}" title="購物車">
                                 <i class="bi bi-cart-fill fs-5"></i>
-                                <span class="d-none d-xl-inline ms-1">購物車</span> </a>
+                                <span class="d-none d-xl-inline ms-1">購物車</span> 
+                            </a>
                         </li>
 
                         <li class="nav-item">
@@ -68,7 +77,8 @@
                         </li>
 
                         {% if user.shop %}
-                            <li class="nav-item border-start border-white border-opacity-50 mx-2 ps-2 d-none d-lg-block"></li> <li class="nav-item">
+                            <li class="nav-item border-start border-white border-opacity-50 mx-2 ps-2 d-none d-lg-block"></li> 
+                            <li class="nav-item">
                                 <a class="nav-link text-white" href="{% url 'shops:shop_detail' user.shop.id %}" title="我的商店">
                                     <i class="bi bi-shop fs-5"></i>
                                     <span class="d-none d-xl-inline ms-1">商店</span>

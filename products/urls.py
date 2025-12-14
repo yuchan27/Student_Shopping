@@ -5,10 +5,10 @@ from . import views
 app_name = 'products'
 
 urlpatterns = [
-    # 【關鍵修正】加上 name='add_product'
     path('add/', views.add_product, name='add_product'),
     path('edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('delete/<int:product_id>/', views.delete_product, name='delete_product'),
     path('search/', views.search, name='search'),
+    path('category/add/', views.add_category, name='add_category'),
     path('', views.index, name='index'),
 ]
