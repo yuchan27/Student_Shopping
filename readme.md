@@ -16,6 +16,13 @@
 - **前端**：HTML5, Bootstrap 5
 - **資料庫**：SQLite (預設)
 
+## 新增功能
+
+- 忘記密碼
+- 超級管理員
+- 購物車
+- 搜尋功能
+
 ### 1. 下載專案
 
 開啟終端機 (Terminal) 或 CMD，執行：
@@ -38,6 +45,7 @@ pip install -r requirements.txt
 python manage.py migrate
 設定帳號密碼和gmail(請測試用(自己填)@nkust.edu.tw)
 
+建立超級管理員
 python manage.py createsuperuser
 
 啟動伺服器
