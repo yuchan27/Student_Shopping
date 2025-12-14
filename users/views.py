@@ -8,7 +8,7 @@ def register(request):
         if form.is_valid():
             form.save()
             # 註冊成功後，跳轉到登入頁面 (Django Admin 預設登入頁)
-            return redirect('/admin/')
+            return redirect('login')
     else:
         form = RegisterForm()
     return render(request, 'users/register.html', {'form': form})
