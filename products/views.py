@@ -1,42 +1,54 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Product
+from .forms import ProductForm
 
-# 功能一：首頁
 def index(request):
-    # 抓出最新的 10 筆商品
     products = Product.objects.all().order_by('-id')[:10]
     return render(request, 'products/index.html', {'products': products})
 
-# 功能二：上架商品
 @login_required
 def add_product(request):
-    # 檢查使用者有沒有商店，沒有就請他去開
-    # 注意：這行前提是你的 User model 有跟 Shop 建立 OneToOne 關聯
     if not hasattr(request.user, 'shop'):
         return redirect('shops:create_shop')
 
     if request.method == 'POST':
-        # 1. 獲取文字資料
-        name = request.POST.get('name')
-        price = request.POST.get('price')
-        stock = request.POST.get('stock')
-        image = request.FILES.get('image') 
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save(commit=False)
+            product.shop = request.user.shop
+            product.save()
+            return redirect('shops:shop_detail', shop_id=request.user.shop.id)
+    else:
+        form = ProductForm()
+    return render(request, 'products/add_product.html', {'form': form})
 
-        if not stock: 
-            stock = 1
+# [這就是消失的編輯功能]
+@login_required
+def edit_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if product.shop.owner != request.user:
+        return redirect('/')
 
-        # 3. 儲存到資料庫
-        Product.objects.create(
-            shop=request.user.shop, 
-            name=name, 
-            price=price,
-            stock=stock,
-            image=image  # [關鍵新增] 把圖片存進去
-        )
-        
-        # 上架成功後，直接跳轉回自己的商店頁面
-        return redirect('shops:shop_detail', shop_id=request.user.shop.id)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('shops:shop_detail', shop_id=product.shop.id)
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'products/edit_product.html', {'form': form, 'product': product})
 
-    return render(request, 'products/add_product.html')
+# [這就是消失的刪除功能]
+@login_required
+def delete_product(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    if product.shop.owner != request.user:
+        return redirect('/')
+
+    if request.method == 'POST':
+        shop_id = product.shop.id
+        product.delete()
+        return redirect('shops:shop_detail', shop_id=shop_id)
+    
+    return render(request, 'products/delete_confirm.html', {'product': product})
