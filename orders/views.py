@@ -108,6 +108,20 @@ def checkout_cart(request):
 
     return render(request, 'orders/checkout_cart.html', {'cart_items': cart_items})
 
+# [新增] 移除購物車項目
+@login_required
+def remove_from_cart(request, cart_item_id):
+    # 找到該購物車項目，如果找不到就回傳 404
+    cart_item = get_object_or_404(CartItem, id=cart_item_id)
+    
+    # 安全檢查：確保這個項目是屬於目前登入的使用者的
+    if cart_item.user == request.user:
+        cart_item.delete() # 刪除資料庫紀錄
+        messages.success(request, '商品已從購物車移除！')
+    
+    # 刪除完後，重新導向回購物車頁面
+    return redirect('orders:view_cart')
+
 @login_required
 def seller_dashboard(request):
     # 1. 確保使用者有開店
