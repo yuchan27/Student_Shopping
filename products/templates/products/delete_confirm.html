@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill"></i> 刪除確認
+                </div>
+                <div class="card-body text-center p-4">
+                    <h4 class="mb-3">你確定要刪除這個商品嗎？</h4>
+                    
+                    <div class="alert alert-light border mb-4">
+                        <img src="{% if product.image %}{{ product.image.url }}{% endif %}" style="height: 100px; object-fit: cover;" class="mb-2 rounded">
+                        <h5 class="fw-bold text-dark">{{ product.name }}</h5>
+                        <p class="text-danger fw-bold mb-0">${{ product.price }}</p>
+                    </div>
+
+                    <p class="text-muted small">
+                        警告：此動作無法復原，商品刪除後將無法找回。
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            <a href="{% url 'shops:shop_detail' product.shop.id %}" class="btn btn-outline-secondary px-4">
+                                取消
+                            </a>
+                            <button type="submit" class="btn btn-danger px-4">
+                                確定刪除
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
