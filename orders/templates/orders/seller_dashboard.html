@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>📦 商店訂單管理</h2>
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>訂單編號</th>
+            <th>商品</th>
+            <th>買家</th>
+            <th>金額</th>
+            <th>狀態</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>#{{ order.id }}</td>
+            <td>{{ order.product.name }}</td>
+            <td>{{ order.buyer.username }}</td>
+            <td>${{ order.total_price }}</td>
+            <td><span class="badge bg-success">{{ order.status }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">目前還沒有人購買你的商品喔！</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
