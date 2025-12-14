@@ -5,7 +5,7 @@
 {% if not user.is_authenticated %}
 <div class="p-5 mb-4 bg-white rounded-3 shadow-sm text-center border">
     <div class="container-fluid py-3">
-        <h1 class="display-5 fw-bold text-primary">歡迎來到蝦皮大學生版 👋</h1>
+        <h1 class="display-5 fw-bold text-primary">歡迎來到大學生Shop! 👋</h1>
         <p class="col-md-8 fs-4 mx-auto text-muted">
             專屬大學生的二手交易平台，使用學校信箱即可快速驗證。
             趕快加入我們，出清你的舊課本與宿舍雜物！
@@ -19,10 +19,20 @@
 {% endif %}
 
 <div class="row mb-4 align-items-center mt-5">
-    <div class="col-6">
-        <h2 class="text-primary border-start border-4 border-primary ps-3">🔥 熱門推薦商品</h2>
+    <div class="col-md-8">
+        {% if query %}
+            <h2 class="text-primary border-start border-4 border-primary ps-3">
+                🔍 搜尋結果：{{ query }}
+                <span class="badge bg-warning text-dark fs-6 ms-2 align-middle">
+                    {{ search_type|default:"一般搜尋" }}
+                </span>
+            </h2>
+        {% else %}
+            <h2 class="text-primary border-start border-4 border-primary ps-3">🔥 熱門推薦商品</h2>
+        {% endif %}
     </div>
-    <div class="col-6 text-end">
+    
+    <div class="col-md-4 text-end">
         <a href="{% url 'orders:view_cart' %}" class="btn btn-outline-primary">
             <i class="bi bi-cart-fill"></i> 我的購物車
         </a>
@@ -75,8 +85,17 @@
     </div>
     {% empty %}
     <div class="col-12 text-center py-5">
-        <div class="alert alert-warning">目前還沒有商品上架。</div>
+        <div class="alert alert-warning" role="alert">
+            {% if query %}
+                <h4>找不到符合「{{ query }}」的商品 😅</h4>
+                <p>試試看其他關鍵字，或者我們的 AI 會努力幫你聯想！</p>
+                <a href="/" class="btn btn-outline-dark mt-2">回到所有商品</a>
+            {% else %}
+                目前還沒有商品上架，快來成為第一個賣家！
+            {% endif %}
+        </div>
     </div>
     {% endfor %}
 </div>
+
 {% endblock %}
