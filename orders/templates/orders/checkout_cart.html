@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">💰 購物車結帳確認</h4>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title mb-4">即將結帳以下商品：</h5>
+                <ul class="list-group mb-4">
+                    {% for item in cart_items %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ item.product.name }} x {{ item.quantity }}
+                        <span class="badge bg-primary rounded-pill">${{ item.total_price }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">請輸入聯絡電話</label>
+                        <input type="tel" name="phone" class="form-control" required placeholder="09xx-xxx-xxx">
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">確認付款 (全部結帳)</button>
+                        <a href="{% url 'orders:view_cart' %}" class="btn btn-outline-secondary">返回購物車</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -22,18 +22,31 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     {% if user.is_authenticated %}
-                        <li class="nav-item">
+                        <li class="nav-item me-2">
                             <span class="nav-link text-light fw-bold">Hi, {{ user.username }}</span>
                         </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'orders:view_cart' %}">
+                                <i class="bi bi-cart-fill"></i> 購物車
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'orders:my_orders' %}">
+                                <i class="bi bi-card-list"></i> 我的訂單
+                            </a>
+                        </li>
+
+                        <li class="nav-item text-white-50 mx-2 d-none d-lg-block">|</li>
                         
                         {% if user.shop %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'shops:shop_detail' user.shop.id %}">🏠 我的商店</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'products:add_product' %}">➕ 上架商品</a>
+                                <a class="nav-link" href="{% url 'products:add_product' %}">➕ 上架</a>
                             </li>
                         {% else %}
                             <li class="nav-item">
@@ -41,10 +54,10 @@
                             </li>
                         {% endif %}
                         
-                        <li class="nav-item">
+                        <li class="nav-item ms-2">
                             <form action="{% url 'logout' %}" method="post" class="d-inline">
                                 {% csrf_token %}
-                                <button type="submit" class="nav-link bg-transparent border-0" style="cursor: pointer;">登出</button>
+                                <button type="submit" class="btn btn-sm btn-outline-light border-0">登出</button>
                             </form>
                         </li>
 
@@ -62,6 +75,15 @@
     </nav>
 
     <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
         {% block content %}
         {% endblock %}
     </div>

@@ -1,28 +1,70 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h2>📦 商店訂單管理</h2>
-<table class="table table-striped mt-3">
-    <thead>
-        <tr>
-            <th>訂單編號</th>
-            <th>商品</th>
-            <th>買家</th>
-            <th>金額</th>
-            <th>狀態</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for order in orders %}
-        <tr>
-            <td>#{{ order.id }}</td>
-            <td>{{ order.product.name }}</td>
-            <td>{{ order.buyer.username }}</td>
-            <td>${{ order.total_price }}</td>
-            <td><span class="badge bg-success">{{ order.status }}</span></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5">目前還沒有人購買你的商品喔！</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="row justify-content-center mt-5">
+    <div class="col-md-11">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="border-start border-4 border-success ps-3">📊 商店訂單管理</h2>
+            <a href="{% url 'shops:shop_detail' user.shop.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> 返回商店首頁
+            </a>
+        </div>
+
+        {% if orders %}
+            <div class="card shadow">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-success text-dark">
+                                <tr>
+                                    <th>訂單編號</th>
+                                    <th>商品名稱</th>
+                                    <th>買家資訊</th>
+                                    <th>聯絡電話</th>
+                                    <th>數量</th>
+                                    <th>總金額</th>
+                                    <th>下單時間</th>
+                                    <th>狀態</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td>#{{ order.id }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if order.product.image %}
+                                                <img src="{{ order.product.image.url }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% endif %}
+                                            <span class="fw-bold">{{ order.product.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <i class="bi bi-person-circle text-secondary"></i> 
+                                        {{ order.buyer.username }}
+                                    </td>
+                                    <td>
+                                        <span class="text-primary fw-bold">{{ order.phone|default:"未提供" }}</span>
+                                    </td>
+                                    <td>{{ order.amount }}</td>
+                                    <td class="text-danger fw-bold">${{ order.total_price }}</td>
+                                    <td class="small text-muted">{{ order.created_at|date:"Y/m/d H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ order.status }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info text-center py-5">
+                <h4>目前還沒有收到訂單 🍃</h4>
+                <p>別氣餒，持續上架好商品，客人馬上就來！</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
