@@ -7,7 +7,10 @@ class Product(models.Model):
     price = models.IntegerField()
     stock = models.IntegerField(default=1)
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)
-    # 客製化 ID (賣家ID + 商品ID)
+    
+    # [補回這個] 缺少它會導致伺服器報錯
+    description = models.TextField(blank=True, null=True)
+
     @property
     def custom_sku(self):
         return f"{self.shop.id}-{self.id}"
