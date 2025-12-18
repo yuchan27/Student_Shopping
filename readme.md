@@ -1,4 +1,3 @@
-
 # 🛒 蝦皮大學生版 (Shopee University Edition)
 
 這是一個專為大學生設計的二手交易平台，使用 Django 框架開發。使用者可以註冊帳號、開設自己的商店，並上架二手教科書或生活用品。
@@ -30,8 +29,6 @@
 - **資料庫**：SQLite (開發環境預設)
 - **搜尋技術**：Vector Embedding (語意搜尋)
 
-
-
 ## 🚀 快速開始 (Installation)
 
 開啟終端機 (Terminal) 或 CMD，執行：
@@ -39,6 +36,14 @@
 ```bash
 git clone https://github.com/yuchan27/network_database_project.git
 cd network_database_project
+
+切換至yuchan分支 
+1. git checkout yuchan
+如果已經有clone過，執行以下指令更新當前電腦git
+git fetch
+git checkout yuchan
+python manage.py migrate
+(記得只要fetch後就要更改資料庫)
 
 然後建立虛擬環境 
 python -m venv venv
