@@ -101,10 +101,10 @@
                         <li class="nav-item dropdown ms-2">
                             <a class="nav-link dropdown-toggle text-white fw-bold bg-white bg-opacity-10 rounded px-2" href="#" role="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle me-1"></i>
-                                <span class="d-none d-lg-inline">{{ user.username }}</span>
+                                <span class="d-none d-lg-inline">{{ user.nickname|default:user.username }}</span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end shadow">
-                                <li><a class="dropdown-item" href="#">會員中心</a></li>
+                                <li><a class="dropdown-item" href="{% url 'users:profile' %}">會員中心</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form action="{% url 'logout' %}" method="post">

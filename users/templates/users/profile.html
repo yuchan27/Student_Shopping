@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm border-0 text-center p-4">
+                <div class="mb-3">
+                    <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                        <i class="bi bi-person-fill text-secondary" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold">{{ user.nickname|default:user.username }}</h4>
+                <p class="text-muted small">{{ user.email }}</p>
+                
+                <hr>
+
+                <div class="d-grid gap-2">
+                    <a href="{% url 'users:profile' %}" class="btn btn-primary">
+                        <i class="bi bi-person-gear"></i> 基本資料
+                    </a>
+                    <a href="{% url 'orders:my_orders' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-bag-check"></i> 我的訂單歷史
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-pencil-square"></i> 編輯個人檔案</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">登入帳號 (不可修改)</label>
+                            <input type="text" class="form-control bg-light" value="{{ user.username }}" disabled readonly>
+                            <div class="form-text">這是您登入系統的唯一識別碼。</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">{{ form.nickname.label }}</label>
+                            {{ form.nickname }}
+                            <div class="form-text">設定一個好記的名字，這會顯示在您的商店頁面。</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">{{ form.email.label }}</label>
+                                {{ form.email }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">{{ form.phone.label }}</label>
+                                {{ form.phone }}
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h6 class="fw-bold mb-1">密碼設定</h6>
+                                <p class="text-muted small mb-0">定期更換密碼可以保護您的帳號安全。</p>
+                            </div>
+                            <a href="{% url 'password_change' %}" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-key"></i> 更改密碼
+                            </a>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-lg"></i> 儲存變更
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
