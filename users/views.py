@@ -36,9 +36,11 @@ def register(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             form.save()
-            # [建議] 註冊成功給個提示
             messages.success(request, '註冊成功！請登入您的帳號。')
             return redirect('login')
+        else:
+            # [新增] 這一行：如果失敗，給一個全域的錯誤提示
+            messages.error(request, '註冊失敗，請檢查輸入資料是否正確。')
     else:
         form = RegisterForm()
     return render(request, 'users/register.html', {'form': form})
