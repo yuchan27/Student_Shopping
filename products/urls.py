@@ -6,11 +6,13 @@ app_name = 'products'
 
 urlpatterns = [
     path('add/', views.add_product, name='add_product'),
-    path('edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('delete/<int:product_id>/', views.delete_product, name='delete_product'),
+    path('edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('search/', views.search, name='search'),
     path('category/add/', views.add_category, name='add_category'),
+    path('category/edit/<int:category_id>/', views.edit_category, name='edit_category'),
     path('api/magic-fill/', views.magic_fill_product, name='magic_fill'),
     path('api/magic-fill/', views.magic_fill_product, name='magic_fill'),
+    
     path('', views.index, name='index'),
 ]

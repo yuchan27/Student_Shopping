@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Q, Case, When, Value, IntegerField
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 
 from .models import Product, Category
 from .forms import ProductForm, CategoryForm
@@ -181,6 +182,26 @@ def add_category(request):
         'categories': categories
     })
 
+@login_required
+@user_passes_test(lambda u: u.is_staff) # 權限與 add_category 保持一致
+def edit_category(request, category_id):
+    # 找到該分類，找不到會回傳 404
+    category = get_object_or_404(Category, id=category_id)
+
+    if request.method == 'POST':
+        new_name = request.POST.get('category_name')
+        
+        # 簡單驗證：有名稱才存
+        if new_name:
+            category.name = new_name
+            category.save()
+            messages.success(request, f'分類 "{new_name}" 更新成功！')
+        else:
+            messages.error(request, '分類名稱不能為空！')
+    
+    # 修改完後，跳轉回原本的新增分類頁面 (假設您的 view 名稱叫 add_category)
+    # 如果您的頁面 view 名稱不同，請自行修改這裡
+    return redirect('products:add_category')
 # ==========================================
 # [修改] 智慧填單 API (純爬蟲版，移除 OCR)
 # ==========================================

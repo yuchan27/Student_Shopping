@@ -2,55 +2,78 @@
 
 {% block content %}
 <div class="container py-5">
-    <div class="row">
-        <div class="col-md-5 mb-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-primary text-white fw-bold">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold border-start border-4 border-primary ps-3">管理商品分類</h2>
+        <a href="/" class="btn btn-outline-secondary">
+            <i class="bi bi-house-door"></i> 回到首頁
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+        
+        <div class="col-md-5">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary text-white fw-bold py-3">
                     <i class="bi bi-folder-plus"></i> 新增商品分類
                 </div>
                 <div class="card-body p-4">
                     <form method="post">
                         {% csrf_token %}
                         
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label fw-bold">分類名稱</label>
-                            {{ form.name }}
-                            <div class="form-text text-muted">請輸入簡潔明確的分類名稱。</div>
+                            <div class="input-group">
+                                {{ form.name }}
+                            </div>
+                            <div class="form-text text-muted mt-2">請輸入簡潔明確的分類名稱。</div>
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm">
                                 <i class="bi bi-plus-lg"></i> 確認新增
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
-            
-            <div class="mt-3 text-center">
-                <a href="/" class="btn btn-outline-secondary btn-sm">回到首頁</a>
-            </div>
         </div>
 
         <div class="col-md-7">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light fw-bold text-dark">
-                    <i class="bi bi-list-ul"></i> 目前已有的分類 ({{ categories|length }})
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-light fw-bold text-dark py-3 border-bottom">
+                    <i class="bi bi-list-ul"></i> 目前已有的分類 ({{ categories.count }})
                 </div>
-                <div class="card-body p-0">
+                <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
                     <ul class="list-group list-group-flush">
                         {% for cat in categories %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>
-                                    <span class="badge bg-secondary me-2">{{ cat.id }}</span>
-                                    {{ cat.name }}
-                                </span>
-                                <span class="text-muted small">
-                                    <i class="bi bi-tag"></i>
-                                </span>
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-4 hover-bg-light">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-secondary me-3 rounded-pill" style="min-width: 30px;">
+                                        {{ forloop.counter }}
+                                    </span>
+                                    <span class="fw-bold text-dark fs-5">{{ cat.name }}</span>
+                                </div>
+                                
+                                <button class="btn btn-outline-primary btn-sm rounded-circle shadow-sm" 
+                                        style="width: 36px; height: 36px; padding: 0;"
+                                        onclick="openEditModal('{{ cat.id }}', '{{ cat.name }}')"
+                                        title="編輯此分類">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
                             </li>
                         {% empty %}
-                            <li class="list-group-item text-center text-muted py-4">
+                            <li class="list-group-item text-center text-muted py-5">
+                                <i class="bi bi-inbox display-4 d-block mb-3 opacity-50"></i>
                                 目前還沒有任何分類，快來新增第一個吧！
                             </li>
                         {% endfor %}
@@ -60,4 +83,71 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="editCategoryModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-pencil-square"></i> 編輯分類名稱
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form method="post" id="editCategoryForm">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <label class="form-label fw-bold">分類名稱</label>
+                    <input type="text" name="category_name" id="modalCategoryName" class="form-control form-control-lg" required>
+                    <div class="form-text mt-2">修改後的名稱將立即套用到所有相關商品。</div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">儲存變更</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-bg-light:hover {
+        background-color: #f8f9fa;
+        transition: background-color 0.2s;
+    }
+    /* 強制讓 input 看起來一致 (如果您原本 form.name 沒有 class) */
+    input[name="name"] {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+</style>
+
+<script>
+function openEditModal(id, name) {
+    // 1. 將舊名稱填入 Modal 的輸入框
+    document.getElementById('modalCategoryName').value = name;
+    
+    // 2. 動態產生正確的 Form Action URL
+    // 先建立一個樣板網址 (ID 為 0)，然後把 0 替換成真的分類 ID
+    let urlTemplate = "{% url 'products:edit_category' 0 %}";
+    let finalUrl = urlTemplate.replace('0', id);
+    
+    // 設定表單送出的目標位置
+    document.getElementById('editCategoryForm').action = finalUrl;
+
+    // 3. 顯示 Bootstrap Modal
+    var myModal = new bootstrap.Modal(document.getElementById('editCategoryModal'));
+    myModal.show();
+}
+</script>
+
 {% endblock %}
