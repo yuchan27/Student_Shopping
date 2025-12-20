@@ -33,7 +33,7 @@
                     <h5 class="mb-0 fw-bold text-primary"><i class="bi bi-pencil-square"></i> 編輯個人檔案</h5>
                 </div>
                 <div class="card-body p-4">
-                    <form method="post">
+                    <form method="post" id="profileForm" novalidate>
                         {% csrf_token %}
                         
                         <div class="mb-3">
@@ -53,9 +53,33 @@
                                 <label class="form-label fw-bold">{{ form.email.label }}</label>
                                 {{ form.email }}
                             </div>
+
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">{{ form.phone.label }}</label>
-                                {{ form.phone }}
+                                <label for="id_phone" class="form-label fw-bold">{{ form.phone.label }}</label>
+                                <div class="input-group has-validation">
+                                    <span class="input-group-text bg-light"><i class="bi bi-phone"></i></span>
+                                    <input type="tel" 
+                                           name="phone" 
+                                           id="id_phone" 
+                                           class="form-control" 
+                                           /* 1. 取得後端傳來的值 */
+                                           value="{{ form.phone.value|default:'' }}" 
+                                           /* 2. 嚴格限制：只能輸入數字、最多10碼 */
+                                           maxlength="10"
+                                           inputmode="numeric"
+                                           placeholder="09xxxxxxxx">
+                                    
+                                    <div class="invalid-feedback">
+                                        格式錯誤！請輸入 09 開頭的 10 碼數字。
+                                    </div>
+                                </div>
+                                <div class="form-text">將用於訂單聯繫，請務必填寫正確。</div>
+                                
+                                {% if form.phone.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.phone.errors.0 }}
+                                    </div>
+                                {% endif %}
                             </div>
                         </div>
 
@@ -146,22 +170,61 @@
 </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+    // === 1. 手機號碼驗證邏輯 ===
+    const profileForm = document.getElementById('profileForm');
+    const phoneInput = document.getElementById('id_phone');
+
+    if (profileForm && phoneInput) {
+        // 輸入時：即時刪除非數字字元
+        phoneInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, ''); 
+
+            // 如果已經被標示錯誤，但現在輸入正確了，就移除錯誤樣式
+            if (this.classList.contains('is-invalid')) {
+                if (/^09\d{8}$/.test(this.value)) {
+                    this.classList.remove('is-invalid');
+                }
+            }
+        });
+
+        // 表單送出時：最後檢查
+        profileForm.addEventListener('submit', function(e) {
+            const phone = phoneInput.value;
+            const regex = /^09\d{8}$/; // 09開頭 + 8個數字
+
+            // 如果有填寫電話，才驗證 (若您的電話為選填，可移除 phone.length > 0)
+            if (phone.length > 0 && !regex.test(phone)) {
+                e.preventDefault(); // 阻止送出
+                e.stopPropagation();
+
+                phoneInput.classList.add('is-invalid'); // 變紅框
+                
+                if(navigator.vibrate) navigator.vibrate(200); // 手機震動提示
+
+                alert('⚠️ 手機號碼格式不正確！\n請輸入「09」開頭的 10 碼數字。');
+                phoneInput.focus();
+            }
+        });
+    }
+});
+
+// === 2. 更改密碼 AJAX 邏輯 ===
 function submitPasswordChange() {
     const form = document.getElementById('passwordChangeForm');
     const formData = new FormData(form);
     const btn = document.querySelector('#passwordChangeModal .btn-primary');
     
-    // 清除舊的錯誤訊息
+    // 清除舊錯誤訊息
     document.querySelectorAll('#passwordChangeModal .is-invalid').forEach(el => el.classList.remove('is-invalid'));
     document.querySelectorAll('#passwordChangeModal .invalid-feedback').forEach(el => el.innerText = '');
 
-    // 按鈕 loading 狀態
+    // 按鈕 Loading 狀態
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 處理中...';
 
-    // 發送 AJAX 請求到後端
-    // 注意：這裡的 URL 要改成您在 urls.py 設定的路徑名稱
+    // 發送 POST 請求
     fetch("{% url 'users:ajax_password_change' %}", {
         method: 'POST',
         body: formData,
@@ -175,16 +238,17 @@ function submitPasswordChange() {
         btn.innerHTML = originalText;
 
         if (data.status === 'success') {
-            // 成功：關閉 Modal 並顯示提示
+            // 成功：關閉 Modal、清空表單、顯示成功訊息
             const modalEl = document.getElementById('passwordChangeModal');
             const modal = bootstrap.Modal.getInstance(modalEl);
             modal.hide();
-            form.reset(); // 清空表單
+            form.reset();
             alert('✅ ' + data.message);
         } else {
-            // 失敗：顯示錯誤訊息在對應的欄位下方
+            // 失敗：將錯誤顯示在對應欄位
             if (data.errors) {
                 for (const [field, msg] of Object.entries(data.errors)) {
+                    // 對應欄位 ID (例如 old_password -> id_old_password)
                     const inputId = 'id_' + field;
                     const inputEl = document.getElementById(inputId);
                     const errorEl = document.getElementById('error_' + field);

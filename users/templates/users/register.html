@@ -13,7 +13,7 @@
             </div>
 
             <div class="card-body p-4 p-md-5">
-                <form method="post" novalidate>
+                <form method="post" id="registerForm" novalidate>
                     {% csrf_token %}
 
                     {% for field in form %}
@@ -30,6 +30,8 @@
                                     {{ field.errors.0 }}
                                 </div>
                             {% endif %}
+                            
+                            <div class="invalid-feedback" id="error_{{ field.name }}"></div>
 
                             {% if field.help_text %}
                                 <div class="form-text text-muted small">{{ field.help_text }}</div>
@@ -67,10 +69,78 @@
 
 <style>
     .spacing-1 { letter-spacing: 1px; }
-    /* 讓輸入框被點擊時，光暈變成綠色的 (預設是藍色) */
+    /* 讓輸入框被點擊時，光暈變成綠色的 */
     .form-control:focus {
         border-color: #198754;
         box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
     }
 </style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. 嘗試尋找 name="phone" 的輸入框 (這是 Django 預設的命名規則)
+    const phoneInput = document.querySelector('input[name="phone"]');
+    const form = document.getElementById('registerForm');
+
+    if (phoneInput) {
+        // === A. 前端加工：加上屬性 ===
+        phoneInput.setAttribute('type', 'tel');           // 改為電話類型
+        phoneInput.setAttribute('maxlength', '10');       // 最多 10 碼
+        phoneInput.setAttribute('inputmode', 'numeric');  // 手機跳出數字鍵盤
+        phoneInput.setAttribute('placeholder', '09xxxxxxxx'); 
+        
+        // 加上 Bootstrap 的 class 以便顯示錯誤樣式
+        // (Django 預設可能已經有 form-control，這裡確保一下)
+        phoneInput.classList.add('form-control');
+
+        // === B. 輸入監聽：只准輸入數字 ===
+        phoneInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, ''); // 刪除非數字
+
+            // 如果原本是紅框，輸入正確格式後移除紅框
+            if (this.classList.contains('is-invalid')) {
+                if (/^09\d{8}$/.test(this.value)) {
+                    this.classList.remove('is-invalid');
+                    // 清除錯誤文字
+                    const errorDiv = document.querySelector('#error_phone');
+                    if(errorDiv) errorDiv.innerText = '';
+                }
+            }
+        });
+
+        // === C. 表單送出監聽：嚴格檢查 ===
+        form.addEventListener('submit', function(e) {
+            const phone = phoneInput.value;
+            const regex = /^09\d{8}$/; // 09開頭 + 8個數字
+
+            if (!regex.test(phone)) {
+                e.preventDefault(); // 阻止送出
+                e.stopPropagation();
+
+                // 顯示紅框
+                phoneInput.classList.add('is-invalid');
+                
+                // 顯示錯誤訊息 (利用我們在 HTML 迴圈裡預留的 invalid-feedback)
+                // 嘗試找 id="error_phone" 的 div，如果找不到就動態建立
+                let errorDiv = document.getElementById('error_phone');
+                if (!errorDiv) {
+                    // 如果迴圈結構不同，嘗試直接找輸入框的下一個元素
+                    errorDiv = phoneInput.nextElementSibling;
+                }
+                
+                if (errorDiv) {
+                    errorDiv.innerText = '格式錯誤！請輸入 09 開頭的 10 碼數字。';
+                    errorDiv.style.display = 'block'; // 確保顯示
+                }
+
+                // 震動提示
+                if(navigator.vibrate) navigator.vibrate(200);
+
+                alert('⚠️ 手機號碼格式錯誤！\n請輸入「09」開頭的 10 碼數字。');
+                phoneInput.focus();
+            }
+        });
+    }
+});
+</script>
 {% endblock %}
