@@ -1,9 +1,22 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Q, Case, When, Value, IntegerField
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
 from .models import Product, Category
 from .forms import ProductForm, CategoryForm
 from .search_engine import semantic_search_products # 向量搜尋 
+import sys
+import os
+
+# [修改] 移除 OCR 引用，只保留 get_book_info
+try:
+    from utils.crawler import get_book_info
+except ImportError:
+    # 如果找不到 utils，將上層目錄加入路徑再試一次
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from utils.crawler import get_book_info
 
 # [Helper 函式] 用來處理分類排序：把「雜項」排到最後
 def get_sorted_categories():
@@ -17,7 +30,7 @@ def get_sorted_categories():
 def index(request):
     # 取得目前網址上的分類參數 (例如 ?category=1)
     category_id = request.GET.get('category')
-    # [新增] 取得排序參數，預設為 'newest'
+    # 取得排序參數，預設為 'newest'
     sort_by = request.GET.get('sort', 'newest')
 
     if category_id:
@@ -27,7 +40,7 @@ def index(request):
         # 沒點分類，就顯示全部
         products = Product.objects.all()
 
-    # [新增] 這裡加入排序邏輯
+    # 這裡加入排序邏輯
     if sort_by == 'price_asc':      # 價格由低到高
         products = products.order_by('price')
     elif sort_by == 'price_desc':   # 價格由高到低
@@ -49,7 +62,7 @@ def index(request):
         'products': products, 
         'categories': categories, 
         'current_category': int(category_id) if category_id else None,
-        'current_sort': sort_by # [新增] 把現在的排序狀態傳回前端
+        'current_sort': sort_by 
     })
 
 @login_required
@@ -99,7 +112,7 @@ def delete_product(request, product_id):
 # 搜尋功能
 def search(request):
     query = request.GET.get('q')
-    # [新增] 搜尋頁面也要能排序
+    # 搜尋頁面也要能排序
     sort_by = request.GET.get('sort', 'newest')
     search_type = "一般搜尋"
     
@@ -116,7 +129,7 @@ def search(request):
 
         products = Product.objects.filter(search_condition)
         
-        # [新增] 如果有找到結果，就進行排序 (如果是 AI 搜尋就不排序，保持關聯度)
+        # 如果有找到結果，就進行排序
         if products.exists():
             if sort_by == 'price_asc':
                 products = products.order_by('price')
@@ -146,8 +159,9 @@ def search(request):
         'query': query,
         'search_type': search_type,
         'categories': categories,
-        'current_sort': sort_by # [新增] 傳回排序狀態
+        'current_sort': sort_by 
     })
+
 @login_required
 @user_passes_test(lambda u: u.is_staff) # 檢查：必須是管理員
 def add_category(request):
@@ -166,3 +180,30 @@ def add_category(request):
         'form': form,
         'categories': categories
     })
+
+# ==========================================
+# [修改] 智慧填單 API (純爬蟲版，移除 OCR)
+# ==========================================
+@require_POST
+def magic_fill_product(request):
+    """
+    接收前端傳來的關鍵字/ISBN，回傳書籍資料
+    """
+    try:
+        # 只處理 keyword (情況 B)
+        keyword = request.POST.get('keyword')
+        
+        if not keyword:
+            return JsonResponse({'status': 'error', 'message': '請輸入關鍵字或 ISBN'})
+
+        # 呼叫 utils/crawler.py 的爬蟲功能
+        data = get_book_info(keyword)
+        
+        if data:
+            return JsonResponse({'status': 'success', 'data': data})
+        else:
+            return JsonResponse({'status': 'fail', 'message': '找不到相關書籍，請確認名稱或 ISBN 是否正確'})
+
+    except Exception as e:
+        print(f"API Error: {e}")
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

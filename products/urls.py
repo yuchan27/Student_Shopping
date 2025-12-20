@@ -10,5 +10,7 @@ urlpatterns = [
     path('delete/<int:product_id>/', views.delete_product, name='delete_product'),
     path('search/', views.search, name='search'),
     path('category/add/', views.add_category, name='add_category'),
+    path('api/magic-fill/', views.magic_fill_product, name='magic_fill'),
+    path('api/magic-fill/', views.magic_fill_product, name='magic_fill'),
     path('', views.index, name='index'),
 ]
