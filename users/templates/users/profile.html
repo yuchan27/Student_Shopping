@@ -66,9 +66,9 @@
                                 <h6 class="fw-bold mb-1">密碼設定</h6>
                                 <p class="text-muted small mb-0">定期更換密碼可以保護您的帳號安全。</p>
                             </div>
-                            <a href="{% url 'password_change' %}" class="btn btn-outline-danger btn-sm">
+                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#passwordChangeModal">
                                 <i class="bi bi-key"></i> 更改密碼
-                            </a>
+                            </button>
                         </div>
 
                         <div class="d-grid">
@@ -84,4 +84,128 @@
 
     </div>
 </div>
+
+<div class="modal fade" id="passwordChangeModal" tabindex="-1" aria-labelledby="passwordChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold" id="passwordChangeModalLabel">
+                    <i class="bi bi-shield-lock-fill"></i> 修改登入密碼
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4">
+                <form id="passwordChangeForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_old_password" class="form-label fw-bold">舊密碼</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-unlock"></i></span>
+                            <input type="password" name="old_password" class="form-control" id="id_old_password" required placeholder="請輸入目前的密碼">
+                            <div class="invalid-feedback" id="error_old_password"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_new_password1" class="form-label fw-bold">新密碼</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="new_password1" class="form-control" id="id_new_password1" required placeholder="請輸入新密碼">
+                            <div class="invalid-feedback" id="error_new_password1"></div>
+                        </div>
+                        <div class="form-text text-muted small mt-2 p-2 bg-light rounded border">
+                            <strong><i class="bi bi-info-circle"></i> 密碼規則提示：</strong>
+                            <ul class="mb-0 ps-3 mt-1">
+                                <li>密碼長度至少需 <strong>8 個字元</strong></li>
+                                <li>請勿使用太常見的密碼 (如 12345678)</li>
+                                <li>建議包含英文與數字混合，提高安全性</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_new_password2" class="form-label fw-bold">確認新密碼</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-lock-fill"></i></span>
+                            <input type="password" name="new_password2" class="form-control" id="id_new_password2" required placeholder="再次輸入新密碼">
+                            <div class="invalid-feedback" id="error_new_password2"></div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="button" class="btn btn-primary fw-bold" onclick="submitPasswordChange()">
+                            <i class="bi bi-check2-circle"></i> 確認修改
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitPasswordChange() {
+    const form = document.getElementById('passwordChangeForm');
+    const formData = new FormData(form);
+    const btn = document.querySelector('#passwordChangeModal .btn-primary');
+    
+    // 清除舊的錯誤訊息
+    document.querySelectorAll('#passwordChangeModal .is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    document.querySelectorAll('#passwordChangeModal .invalid-feedback').forEach(el => el.innerText = '');
+
+    // 按鈕 loading 狀態
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 處理中...';
+
+    // 發送 AJAX 請求到後端
+    // 注意：這裡的 URL 要改成您在 urls.py 設定的路徑名稱
+    fetch("{% url 'users:ajax_password_change' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+
+        if (data.status === 'success') {
+            // 成功：關閉 Modal 並顯示提示
+            const modalEl = document.getElementById('passwordChangeModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            form.reset(); // 清空表單
+            alert('✅ ' + data.message);
+        } else {
+            // 失敗：顯示錯誤訊息在對應的欄位下方
+            if (data.errors) {
+                for (const [field, msg] of Object.entries(data.errors)) {
+                    const inputId = 'id_' + field;
+                    const inputEl = document.getElementById(inputId);
+                    const errorEl = document.getElementById('error_' + field);
+                    
+                    if (inputEl && errorEl) {
+                        inputEl.classList.add('is-invalid');
+                        errorEl.innerText = msg;
+                    }
+                }
+            } else {
+                alert('❌ 發生未知錯誤，請稍後再試。');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        alert('❌ 系統連線錯誤，請檢查網路狀態。');
+    });
+}
+</script>
+
 {% endblock %}

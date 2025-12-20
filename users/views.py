@@ -3,9 +3,12 @@ from django.contrib.auth import logout, get_user_model, update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import user_passes_test, login_required
 from django.contrib import messages
+# [新增 1] 引入這兩個模組，用於處理 AJAX 回傳
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
 from shops.models import Shop
 from products.models import Product
-# [修改 1] 記得要在這裡引入 UserProfileForm
 from .forms import RegisterForm, UserProfileForm 
 
 User = get_user_model()
@@ -39,7 +42,6 @@ def register(request):
             messages.success(request, '註冊成功！請登入您的帳號。')
             return redirect('login')
         else:
-            # [新增] 這一行：如果失敗，給一個全域的錯誤提示
             messages.error(request, '註冊失敗，請檢查輸入資料是否正確。')
     else:
         form = RegisterForm()
@@ -51,37 +53,32 @@ def logout_view(request):
     messages.info(request, '您已成功登出。')
     return redirect('/')
 
-# [新增 2] 會員中心 (個人資料修改)
+# 會員中心 (個人資料修改)
 @login_required
 def profile(request):
     if request.method == 'POST':
-        # instance=request.user 非常重要！這代表我們是在「修改」目前這個人，而不是「新增」別人
         form = UserProfileForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, '個人資料更新成功！')
-            return redirect('users:profile') # 存檔後重新導向回同一頁
+            return redirect('users:profile')
     else:
-        # 如果是剛進來 (GET)，就顯示目前使用者的資料
         form = UserProfileForm(instance=request.user)
 
     return render(request, 'users/profile.html', {'form': form})
 
-# 修改密碼功能
+# [新增 2] AJAX 專用的修改密碼函式 (對應懸浮框)
 @login_required
-def change_password(request):
-    if request.method == 'POST':
-        form = PasswordChangeForm(request.user, request.POST)
-        if form.is_valid():
-            user = form.save()
-            # 更新 Session，防止被登出
-            update_session_auth_hash(request, user)  
-            messages.success(request, '您的密碼已成功修改！')
-            # 修改完密碼，通常會導向回會員中心或首頁
-            return redirect('users:profile') 
-        else:
-            messages.error(request, '請修正以下的錯誤。')
+@require_POST
+def ajax_password_change(request):
+    form = PasswordChangeForm(request.user, request.POST)
+    if form.is_valid():
+        user = form.save()
+        # 更新 Session，防止被登出
+        update_session_auth_hash(request, user)
+        return JsonResponse({'status': 'success', 'message': '密碼修改成功！'})
     else:
-        form = PasswordChangeForm(request.user)
-    
-    return render(request, 'users/change_password.html', {'form': form})
+        # 將錯誤訊息轉換成字典格式回傳給前端 JS
+        # form.errors.items() 會回傳像 {'old_password': ['密碼錯誤'], ...}
+        errors = {field: error_list[0] for field, error_list in form.errors.items()}
+        return JsonResponse({'status': 'error', 'errors': errors})
