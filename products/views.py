@@ -29,16 +29,12 @@ def get_sorted_categories():
     return list(normal_cats) + list(misc_cat)
 
 def index(request):
-    # 取得目前網址上的分類參數 (例如 ?category=1)
     category_id = request.GET.get('category')
-    # 取得排序參數，預設為 'newest'
     sort_by = request.GET.get('sort', 'newest')
 
     if category_id:
-        # 如果有點擊分類，就只抓該分類的商品
         products = Product.objects.filter(category_id=category_id)
     else:
-        # 沒點分類，就顯示全部
         products = Product.objects.all()
 
     # 這裡加入排序邏輯

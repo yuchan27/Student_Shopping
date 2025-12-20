@@ -24,7 +24,7 @@ class Product(models.Model):
     category = models.ForeignKey(
         Category, 
         on_delete=models.SET_DEFAULT, # 如果分類被刪除，商品會變回預設值
-        default=3, # 假設「雜項」的 ID 是 1 (請根據你的資料庫實際 ID 修改)
+        default=1, # 假設「雜項」的 ID 是 1 (請根據你的資料庫實際 ID 修改)
         verbose_name="商品分類"
     )
     @property

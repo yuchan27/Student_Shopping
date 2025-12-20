@@ -4,25 +4,24 @@
 <style>
     /* === 核心修改：控制「整張卡片」的寬度 === */
     .main-form-card {
-        max-width: 400px; /* 您可以在這裡調整想要的寬度 */
+        max-width: 400px;
         width: 100%;
-        margin: 0 auto;   /* 讓卡片在欄位中置中 */
+        margin: 0 auto;
     }
 
-    /* 讓右邊的參考資訊卡片也跟左邊一樣寬，視覺比較整齊 */
+    /* 讓右邊的參考資訊卡片也跟左邊一樣寬 */
     .reference-card {
         max-width: 400px;
         width: 100%;
     }
 
-    /* 商品描述欄位樣式：隱藏捲軸並禁止手動拉大 */
+    /* 商品描述欄位樣式 */
     textarea.auto-expand {
         resize: none; 
         overflow-y: hidden;
-        min-height: 100px; /* 預設最小高度 */
+        min-height: 100px;
     }
     
-    /* 確保所有輸入框都填滿卡片內部 */
     .form-control, .form-select, .input-group {
         width: 100%;
     }
@@ -132,14 +131,10 @@
 document.addEventListener("DOMContentLoaded", function() {
     const tx = document.getElementById('id_description'); 
     if (tx) {
-        // 加上 class 方便 CSS 選取
         tx.classList.add('auto-expand');
-
-        // 初始化高度
         tx.style.height = 'auto';
         tx.style.height = (tx.scrollHeight) + 'px';
         
-        // 監聽輸入，動態調整
         tx.addEventListener("input", function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + "px";
@@ -147,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 });
 
-// === 2. 搜尋與帶入邏輯 ===
+// === 2. 搜尋 API 邏輯 ===
 let currentSearchResults = [];
 
 function searchBookInfo(btn) {
@@ -230,6 +225,7 @@ function renderReferenceList(items) {
     });
 }
 
+// === 3. 帶入資料與自動分類 ===
 function applyData(index) {
     const item = currentSearchResults[index];
     if (!item) return;
@@ -239,14 +235,17 @@ function applyData(index) {
     priceField.value = item.price; 
     flashField(priceField);
 
-    // 帶入名稱
+    // 帶入名稱 & 觸發自動分類
     const nameField = document.getElementById('id_name');
     if (confirm(`將名稱更改為：\n"${item.title}" 嗎？`)) {
         nameField.value = item.title;
         flashField(nameField);
+
+        // [補回] 觸發自動分類
+        autoSelectCategory(item.title);
     }
 
-    // 顯示資訊在右下角
+    // 更新右下角黃色資訊框
     const infoBox = document.getElementById('selectedInfoBox');
     const infoContent = document.getElementById('selectedInfoContent');
     
@@ -261,6 +260,44 @@ function applyData(index) {
             </p>
         </div>
     `;
+}
+
+// [補回] 自動分類邏輯函式
+function autoSelectCategory(title) {
+    const categorySelect = document.getElementById('id_category'); 
+    if (!categorySelect) return;
+
+    const lowerTitle = title.toLowerCase();
+    let targetKeyword = [];
+
+    // === 關鍵字設定區 (請依您資料庫真實分類調整) ===
+    if (lowerTitle.match(/iphone|mac|asus|acer|微星|羅技|鍵盤|滑鼠|耳機|airpods|ipad|平板|電腦|筆電|小米/)) {
+        targetKeyword = ["3C", "電子", "數位", "手機"]; 
+    } 
+    else if (lowerTitle.match(/python|java|c\+\+|微積分|經濟學|課本|參考書|多益|檢定|小說|漫畫/)) {
+        targetKeyword = ["圖書", "文具", "學習", "閱讀"];
+    }
+    else if (lowerTitle.match(/衣|褲|鞋|帽|包|裙|外套/)) {
+        targetKeyword = ["衣", "服飾", "穿搭", "時尚"];
+    }
+    else if (lowerTitle.match(/衛生紙|桌|椅|櫃|燈|風扇|吹風機/)) {
+        targetKeyword = ["生活", "家具", "居家", "日用"];
+    }
+
+    // 執行比對與選取
+    if (targetKeyword.length > 0) {
+        for (let i = 0; i < categorySelect.options.length; i++) {
+            const optionText = categorySelect.options[i].text;
+            const isMatch = targetKeyword.some(k => optionText.includes(k));
+            
+            if (isMatch) {
+                categorySelect.selectedIndex = i;
+                flashField(categorySelect);
+                console.log(`已自動分類至: ${optionText}`);
+                break; 
+            }
+        }
+    }
 }
 
 function flashField(element) {
