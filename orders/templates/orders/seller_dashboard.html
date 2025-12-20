@@ -10,7 +10,7 @@
             </a>
         </div>
 
-        {% if orders %}
+        {% if sold_items %}
             <div class="card shadow">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -22,35 +22,44 @@
                                     <th>買家資訊</th>
                                     <th>聯絡電話</th>
                                     <th>數量</th>
-                                    <th>總金額</th>
+                                    <th>銷售金額</th>
                                     <th>下單時間</th>
                                     <th>狀態</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for order in orders %}
+                                {% for item in sold_items %}
                                 <tr>
-                                    <td>#{{ order.id }}</td>
+                                    <td>#{{ item.order.id }}</td>
+                                    
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            {% if order.product.image %}
-                                                <img src="{{ order.product.image.url }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% if item.product.image %}
+                                                <img src="{{ item.product.image.url }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
                                             {% endif %}
-                                            <span class="fw-bold">{{ order.product.name }}</span>
+                                            <span class="fw-bold">{{ item.product.name }}</span>
                                         </div>
                                     </td>
+                                    
                                     <td>
-                                        <i class="bi bi-person-circle text-secondary"></i> 
-                                        {{ order.buyer.username }}
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-person-circle text-secondary me-1"></i> 
+                                            {{ item.order.buyer.username }}
+                                        </div>
                                     </td>
+                                    
                                     <td>
-                                        <span class="text-primary fw-bold">{{ order.phone|default:"未提供" }}</span>
+                                        <span class="text-primary fw-bold">{{ item.order.phone|default:"未提供" }}</span>
                                     </td>
-                                    <td>{{ order.amount }}</td>
-                                    <td class="text-danger fw-bold">${{ order.total_price }}</td>
-                                    <td class="small text-muted">{{ order.created_at|date:"Y/m/d H:i" }}</td>
+                                    
+                                    <td>{{ item.quantity }}</td>
+                                    
+                                    <td class="text-danger fw-bold">${{ item.total }}</td>
+                                    
+                                    <td class="small text-muted">{{ item.order.created_at|date:"Y/m/d H:i" }}</td>
+                                    
                                     <td>
-                                        <span class="badge bg-secondary">{{ order.status }}</span>
+                                        <span class="badge bg-secondary">{{ item.order.status }}</span>
                                     </td>
                                 </tr>
                                 {% endfor %}

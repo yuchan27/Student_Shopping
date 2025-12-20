@@ -1,48 +1,91 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
+<div class="row justify-content-center mt-5 mb-5">
     <div class="col-md-10">
-        <h2 class="mb-4 border-start border-4 border-primary ps-3">📦 我的訂單記錄</h2>
+        <h2 class="mb-4 border-start border-4 border-primary ps-3 fw-bold">📦 我的訂單記錄</h2>
 
         {% if orders %}
-            <div class="list-group shadow-sm">
+            <div class="d-flex flex-column gap-4">
+                
                 {% for order in orders %}
-                <div class="list-group-item list-group-item-action p-4 border-0 border-bottom">
-                    <div class="d-flex w-100 justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            {% if order.product.image %}
-                                <img src="{{ order.product.image.url }}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                            {% else %}
-                                <div class="bg-light rounded d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
-                                    <i class="bi bi-box-seam text-muted"></i>
-                                </div>
-                            {% endif %}
-                            
-                            <div>
-                                <h5 class="mb-1 text-primary">{{ order.product.name }}</h5>
-                                <p class="mb-1 text-muted small">
-                                    賣家：{{ order.product.shop.name }} | 
-                                    <span class="text-dark">訂單編號 #{{ order.id }}</span>
-                                </p>
-                                <small class="text-secondary">下單時間：{{ order.created_at|date:"Y-m-d H:i" }}</small>
-                            </div>
+                <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+                    
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+                        <div>
+                            <span class="badge bg-primary rounded-pill me-2 fs-6">
+                                第 {{ forloop.revcounter }} 次訂單
+                            </span>
+                            <span class="text-muted small fw-bold">
+                                <i class="bi bi-calendar3"></i> {{ order.created_at|date:"Y-m-d H:i" }}
+                            </span>
                         </div>
-                        
-                        <div class="text-end">
-                            <h5 class="fw-bold text-danger mb-1">${{ order.total_price }}</h5>
-                            <span class="badge bg-success rounded-pill">{{ order.status }}</span>
+                        <div>
+                            <span class="badge bg-secondary">{{ order.status }}</span>
                         </div>
                     </div>
+
+                    <div class="list-group list-group-flush">
+                        
+                        {% for item in order.items.all %}
+                        <div class="list-group-item p-3 border-0 border-bottom">
+                            <div class="d-flex align-items-center">
+                                
+                                <div class="flex-shrink-0">
+                                    {% if item.product and item.product.image %}
+                                        <a href="{% url 'products:product_detail' item.product.id %}">
+                                            <img src="{{ item.product.image.url }}" class="rounded border" style="width: 60px; height: 60px; object-fit: cover;">
+                                        </a>
+                                    {% else %}
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center border" style="width: 60px; height: 60px;" title="商品圖片已失效">
+                                            <i class="bi bi-camera-video-off text-secondary fs-4"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex-grow-1 ms-3">
+                                    <h5 class="mb-1 fw-bold">
+                                        {% if item.product %}
+                                            <a href="{% url 'products:product_detail' item.product.id %}" class="text-decoration-none text-primary">
+                                                {{ item.product_name }}
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted text-decoration-line-through" title="此商品已被賣家刪除">
+                                                {{ item.product_name }} (已下架)
+                                            </span>
+                                        {% endif %}
+                                    </h5>
+                                    
+                                    <p class="mb-0 text-muted small">
+                                        賣家：{{ item.product.shop.name|default:"(賣家已離開)" }}
+                                    </p>
+                                </div>
+
+                                <div class="text-end">
+                                    <div class="text-muted small">數量：x{{ item.quantity }}</div>
+                                    <div class="fw-bold text-danger fs-5">${{ item.price }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                    </div>
+
+                    <div class="card-footer bg-white text-end py-3">
+                        <span class="text-muted small me-2">訂單總金額:</span>
+                        <span class="fs-4 fw-bold text-dark">${{ order.total_price }}</span>
+                    </div>
+
                 </div>
                 {% endfor %}
+
             </div>
         {% else %}
-            <div class="text-center py-5 bg-light rounded-3">
+            <div class="text-center py-5 bg-light rounded-3 shadow-sm">
                 <i class="bi bi-cart-x display-1 text-secondary"></i>
                 <h3 class="mt-3 text-muted">目前沒有訂單</h3>
-                <p>快去逛逛有什麼好東西吧！</p>
-                <a href="/" class="btn btn-primary mt-2">去首頁逛逛</a>
+                <p class="text-muted">快去逛逛有什麼好東西吧！</p>
+                <a href="/" class="btn btn-primary mt-2 px-4 rounded-pill fw-bold">去首頁逛逛</a>
             </div>
         {% endif %}
     </div>
