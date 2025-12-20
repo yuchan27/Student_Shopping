@@ -30,17 +30,29 @@
                         </div>
                     </div>
 
-                    <form method="post">
+                    <form method="post" id="buyForm" novalidate>
                         {% csrf_token %}
                         
                         <div class="mb-4">
                             <label for="phone" class="form-label fw-bold small text-muted">訂購人聯絡電話</label>
-                            <div class="input-group">
+                            <div class="input-group has-validation">
                                 <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
-                                <input type="tel" name="phone" id="phone" class="form-control" placeholder="請輸入手機號碼" required>
+                                <input type="tel" 
+                                       name="phone" 
+                                       id="phone" 
+                                       class="form-control" 
+                                       placeholder="09xxxxxxxx" 
+                                       value="{{ request.user.phone|default:'' }}"  maxlength="10"
+                                       inputmode="numeric"
+                                       required>
+                                <div class="invalid-feedback">
+                                    請輸入正確的手機號碼 (09開頭，共10碼數字)
+                                </div>
+                            </div>
+                            <div class="form-text text-muted small mt-1">
+                                * 我們將會透過此電話聯繫您確認訂單細節
                             </div>
                         </div>
-
                         <div class="bg-light p-3 rounded mb-4">
                             <div class="d-flex justify-content-between mb-2 small text-muted">
                                 <span>商品單價</span>
@@ -80,4 +92,46 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const phoneInput = document.getElementById('phone');
+    const form = document.getElementById('buyForm');
+
+    // 1. 限制只能輸入數字 (即時過濾)
+    phoneInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        // 輸入時如果已經錯誤，且現在格式對了，就移除紅框
+        if (this.classList.contains('is-invalid')) {
+            if (/^09\d{8}$/.test(this.value)) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        }
+    });
+
+    // 2. 表單送出前檢查
+    form.addEventListener('submit', function(e) {
+        const phone = phoneInput.value;
+        // Regex: 09開頭，後面接8個數字，總共10碼
+        const regex = /^09\d{8}$/;
+
+        if (!regex.test(phone)) {
+            e.preventDefault(); // 阻止送出
+            e.stopPropagation();
+            
+            // 顯示紅框與錯誤訊息
+            phoneInput.classList.remove('is-valid');
+            phoneInput.classList.add('is-invalid');
+            
+            // 震動提示 (如果裝置支援)
+            if(navigator.vibrate) navigator.vibrate(200);
+            
+            alert('請確認手機號碼格式正確！\n需為 09 開頭的 10 碼數字。');
+            phoneInput.focus();
+        }
+    });
+});
+</script>
 {% endblock %}
