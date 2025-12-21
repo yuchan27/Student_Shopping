@@ -271,17 +271,26 @@ function autoSelectCategory(title) {
     let targetKeyword = [];
 
     // === 關鍵字設定區 (請依您資料庫真實分類調整) ===
-    if (lowerTitle.match(/iphone|mac|asus|acer|微星|羅技|鍵盤|滑鼠|耳機|airpods|ipad|平板|電腦|筆電|小米/)) {
-        targetKeyword = ["3C", "電子", "數位", "手機"]; 
+    if (lowerTitle.match(/iphone|小米|紅米/)) {
+        targetKeyword = ["手機"]; 
+    } 
+    else if (lowerTitle.match(/mac|asus|acer|微星|羅技|鍵盤|滑鼠|耳機|airpods|ipad|平板|電腦|筆電|/)) {
+        targetKeyword = ["3C"];
+    }  
+    else if (lowerTitle.match(/冰箱|空氣清淨機|除濕機|風扇|/)) {
+        targetKeyword = ["家電"];
     } 
     else if (lowerTitle.match(/python|java|c\+\+|微積分|經濟學|課本|參考書|多益|檢定|小說|漫畫/)) {
-        targetKeyword = ["圖書", "文具", "學習", "閱讀"];
+        targetKeyword = ["圖書"];
     }
     else if (lowerTitle.match(/衣|褲|鞋|帽|包|裙|外套/)) {
-        targetKeyword = ["衣", "服飾", "穿搭", "時尚"];
+        targetKeyword = ["服飾"];
     }
     else if (lowerTitle.match(/衛生紙|桌|椅|櫃|燈|風扇|吹風機/)) {
-        targetKeyword = ["生活", "家具", "居家", "日用"];
+        targetKeyword = ["家具"];
+    }
+    else if (lowerTitle.match(/飲料|食物|調理包|/)) {
+        targetKeyword = ["食品"];
     }
 
     // 執行比對與選取

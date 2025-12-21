@@ -1,164 +1,305 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+    /* === 新增樣式：限制文字行數 === */
+    .text-line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;   /* 限制顯示 2 行 */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;        /* 調整行高 */
+        height: 2.6em;           /* 固定高度避免跳動 (1.3 * 2) */
+    }
 
-{% if not user.is_authenticated %}
-<div class="p-5 mb-4 bg-white rounded-3 shadow-sm text-center border">
-    <div class="container-fluid py-3">
-        <h1 class="display-5 fw-bold text-primary">歡迎來到大學生Shopping! 👋</h1>
-        <p class="col-md-8 fs-4 mx-auto text-muted">
-            專屬大學生的二手交易平台，使用學校信箱即可快速驗證。
-            趕快加入我們，出清你的舊課本與宿舍雜物！
-        </p>
-        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
-            <a href="{% url 'users:register' %}" class="btn btn-primary btn-lg px-4 gap-3">🚀 立即註冊會員</a>
-            <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg px-4">會員登入</a>
-        </div>
-    </div>
-</div>
-{% endif %}
+    /* 讓商品卡片 Hover 時有點浮動效果 */
+    .product-card:hover {
+        transform: translateY(-3px);
+        transition: transform 0.2s;
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+</style>
 
-<div class="row mb-4 align-items-center mt-4">
-    <div class="col-md-8">
-        {% if query %}
-            <h2 class="text-primary border-start border-4 border-primary ps-3">
-                🔍 搜尋結果：{{ query }}
-                <span class="badge bg-warning text-dark fs-6 ms-2 align-middle">
-                    {{ search_type|default:"一般搜尋" }}
-                </span>
-            </h2>
-        {% elif current_category %}
-             <h2 class="text-primary border-start border-4 border-primary ps-3">
-                 📂 分類瀏覽
-             </h2>
-        {% else %}
-            <h2 class="text-primary border-start border-4 border-primary ps-3">🔥 熱門推薦商品</h2>
-        {% endif %}
-    </div>
-    <div class="col-md-4 text-end">
-        <a href="{% url 'orders:view_cart' %}" class="btn btn-outline-primary">
-            <i class="bi bi-cart-fill"></i> 我的購物車
-        </a>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-3 mb-4">
-        <div class="list-group shadow-sm sticky-top" style="top: 100px; z-index: 1;">
-            <div class="list-group-item bg-light fw-bold text-dark">
-                <i class="bi bi-grid-fill"></i> 商品分類
+<div class="container-fluid px-3 px-lg-5 py-4">
+    
+    {% if not user.is_authenticated and not query and not current_category %}
+    <div class="p-5 mb-4 bg-white rounded-3 shadow-sm text-center border">
+        <div class="container-fluid py-3">
+            <h1 class="display-5 fw-bold text-primary">歡迎來到大學生Shopping! 👋</h1>
+            <p class="col-md-8 fs-4 mx-auto text-muted">
+                專屬大學生的二手交易平台。趕快加入我們，出清你的舊課本與宿舍雜物！
+            </p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+                <a href="{% url 'users:register' %}" class="btn btn-primary btn-lg px-4 gap-3">🚀 立即註冊會員</a>
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg px-4">會員登入</a>
             </div>
-            <a href="{% url 'products:index' %}" class="list-group-item list-group-item-action {% if not current_category %}active{% endif %}">
-                全部商品
-            </a>
-            {% for cat in categories %}
-                <a href="{% url 'products:index' %}?category={{ cat.id }}" 
-                   class="list-group-item list-group-item-action {% if current_category|stringformat:'s' == cat.id|stringformat:'s' %}active{% endif %}">
-                    {{ cat.name }}
-                </a>
-            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row mb-3 align-items-center">
+        <div class="col-md-8">
+            {% if query %}
+                <h2 class="text-primary border-start border-4 border-primary ps-3">
+                    🔍 搜尋結果：{{ query }}
+                    <span class="badge bg-warning text-dark fs-6 ms-2 align-middle">
+                        {{ search_type|default:"一般搜尋" }}
+                    </span>
+                </h2>
+            {% elif current_category %}
+                 <h2 class="text-primary border-start border-4 border-primary ps-3">
+                     📂 分類瀏覽
+                 </h2>
+            {% else %}
+                <h2 class="text-primary border-start border-4 border-primary ps-3">🔥 熱門推薦商品</h2>
+            {% endif %}
         </div>
     </div>
 
-    <div class="col-md-9">
+    <div class="row g-4">
         
-        <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded border">
-            <span class="text-muted small fw-bold">
-                <i class="bi bi-box-seam"></i> 共找到 {{ products|length }} 樣商品
-            </span>
-
-            <form method="GET" class="d-flex align-items-center">
-                {% if current_category %}
-                    <input type="hidden" name="category" value="{{ current_category }}">
-                {% endif %}
-                {% if query %}
-                    <input type="hidden" name="q" value="{{ query }}">
-                {% endif %}
-
-                <label for="sort" class="me-2 text-nowrap small text-muted fw-bold">排序：</label>
-                <select name="sort" id="sort" class="form-select form-select-sm border-secondary" style="width: auto;" onchange="this.form.submit()">
-                    <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>最新上架</option>
-                    <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>價格：低 → 高</option>
-                    <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>價格：高 → 低</option>
-                    <option value="name_asc" {% if current_sort == 'name_asc' %}selected{% endif %}>名稱：A → Z</option>
-                    <option value="name_desc" {% if current_sort == 'name_desc' %}selected{% endif %}>名稱：Z → A</option>
-                </select>
-            </form>
+        <div class="col-lg-2 mb-4 d-none d-lg-block">
+            <div class="list-group shadow-sm sticky-top" style="top: 80px; z-index: 1;">
+                <div class="list-group-item bg-light fw-bold text-dark">
+                    <i class="bi bi-grid-fill"></i> 商品分類
+                </div>
+                <a href="{% url 'products:index' %}" class="list-group-item list-group-item-action {% if not current_category %}active{% endif %}">
+                    全部商品
+                </a>
+                {% for cat in categories %}
+                    <a href="{% url 'products:index' %}?category={{ cat.id }}" 
+                       class="list-group-item list-group-item-action {% if current_category|stringformat:'s' == cat.id|stringformat:'s' %}active{% endif %}">
+                        {{ cat.name }}
+                    </a>
+                {% endfor %}
+            </div>
         </div>
-        <div class="row row-cols-1 row-cols-md-3 g-4">
-            {% for product in products %}
-            <div class="col">
-                <div class="card h-100 shadow-sm">
-                    
-                    <div class="position-relative bg-white d-flex align-items-center justify-content-center card-img-top border-bottom" style="height: 250px; overflow: hidden;">
-                        {% if product.image %}
-                            <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: contain; padding: 10px;">
-                        {% else %}
-                            <i class="bi bi-box-seam text-secondary" style="font-size: 4rem;"></i>
-                        {% endif %}
-                        
-                        {% if product.stock == 0 %}
-                        <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center">
-                            <span class="badge bg-danger fs-4">已售完</span>
-                        </div>
-                        {% endif %}
-                    </div>
 
-                    <div class="card-body d-flex flex-column">
-                        <div class="mb-2">
-                            {% if product.category %}
-                                <span class="badge bg-info text-dark mb-2">{{ product.category.name }}</span>
+        <div class="col-lg-7">
+            
+            <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light rounded border">
+                <span class="text-muted small fw-bold">
+                    <i class="bi bi-box-seam"></i> 共找到 {{ products|length }} 樣商品
+                </span>
+
+                <form method="GET" class="d-flex align-items-center">
+                    {% if current_category %}
+                        <input type="hidden" name="category" value="{{ current_category }}">
+                    {% endif %}
+                    {% if query %}
+                        <input type="hidden" name="q" value="{{ query }}">
+                    {% endif %}
+
+                    <label for="sort" class="me-2 text-nowrap small text-muted fw-bold">排序：</label>
+                    <select name="sort" id="sort" class="form-select form-select-sm border-secondary" style="width: auto;" onchange="this.form.submit()">
+                        <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>最新上架</option>
+                        <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>價格：低 → 高</option>
+                        <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>價格：高 → 低</option>
+                    </select>
+                </form>
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+                {% for product in products %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm product-card border-0">
+                        <div class="position-relative bg-white d-flex align-items-center justify-content-center card-img-top border-bottom" style="height: 200px; overflow: hidden;">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="img-fluid" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: contain; padding: 10px;">
+                            {% else %}
+                                <i class="bi bi-box-seam text-secondary" style="font-size: 3rem;"></i>
                             {% endif %}
                             
-                            <h5 class="card-title fw-bold mb-1 text-truncate">
-                                {% if product.stock > 0 %}
-                                    <a href="{% url 'orders:create_order' product.id %}" class="text-decoration-none text-dark stretched-link">
-                                        {{ product.name }}
-                                    </a>
-                                {% else %}
-                                    <span class="text-dark">{{ product.name }}</span>
-                                {% endif %}
-                            </h5>
+                            {% if product.stock == 0 %}
+                            <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark bg-opacity-50 d-flex align-items-center justify-content-center">
+                                <span class="badge bg-danger fs-5">已售完</span>
+                            </div>
+                            {% endif %}
                         </div>
 
-                        <h4 class="text-danger fw-bold mb-3">${{ product.price }}</h4>
-
-                        <div class="mt-auto d-flex justify-content-between align-items-center">
-                            <small class="text-muted">
-                                <i class="bi bi-shop"></i> {{ product.shop.name|default:"無名商店"|truncatechars:10 }} 
-                            </small>
-
-                            <div class="position-relative" style="z-index: 2;">
-                                {% if product.stock > 0 %}
-                                    <a href="{% url 'orders:add_to_cart' product.id %}" class="btn btn-outline-primary btn-sm me-1" title="加入購物車">
-                                        加入購物車<i class="bi bi-cart-plus"></i>
-                                    </a>
-                                    <a href="{% url 'orders:create_order' product.id %}" class="btn btn-primary btn-sm">
-                                        點我購買~
-                                    </a>
-                                {% else %}
-                                    <button class="btn btn-secondary btn-sm" disabled>補貨中</button>
+                        <div class="card-body d-flex flex-column p-3">
+                            <div class="mb-2">
+                                {% if product.category %}
+                                    <span class="badge bg-info text-dark mb-1" style="font-size: 0.7rem;">{{ product.category.name }}</span>
                                 {% endif %}
+                                <h6 class="card-title fw-bold mb-1 text-truncate">
+                                    {% if product.stock > 0 %}
+                                        <a href="{% url 'orders:create_order' product.id %}" class="text-decoration-none text-dark stretched-link">
+                                            {{ product.name }}
+                                        </a>
+                                    {% else %}
+                                        <span class="text-dark">{{ product.name }}</span>
+                                    {% endif %}
+                                </h6>
+                            </div>
+
+                            <h5 class="text-danger fw-bold mb-2">${{ product.price }}</h5>
+
+                            <div class="mt-auto d-flex justify-content-between align-items-center">
+                                <small class="text-muted text-truncate" style="max-width: 80px;">
+                                    <i class="bi bi-shop"></i> {{ product.shop.name|default:"無名商店" }} 
+                                </small>
+                                <div class="position-relative" style="z-index: 2;">
+                                    {% if product.stock > 0 %}
+                                        <a href="{% url 'orders:add_to_cart' product.id %}" class="btn btn-outline-primary btn-sm px-2 py-0" title="加入購物車">
+                                            <i class="bi bi-cart-plus"></i>
+                                        </a>
+                                        <a href="{% url 'orders:create_order' product.id %}" class="btn btn-primary btn-sm px-2 py-0">
+                                            購買
+                                        </a>
+                                    {% else %}
+                                        <button class="btn btn-secondary btn-sm px-2 py-0" disabled>補貨中</button>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <div class="alert alert-warning" role="alert">
+                        {% if query %}
+                            <h4>找不到符合「{{ query }}」的商品 😅</h4>
+                            <p>請查看右側的「外部行情比價」！</p>
+                            <a href="/" class="btn btn-outline-dark mt-2">回到所有商品</a>
+                        {% else %}
+                            目前這個分類還沒有商品上架。
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-            {% empty %}
-            <div class="col-12 text-center py-5">
-                <div class="alert alert-warning" role="alert">
-                    {% if query %}
-                        <h4>找不到符合「{{ query }}」的商品 😅</h4>
-                        <p>試試看其他關鍵字，或者我們的 AI 會努力幫你聯想！</p>
-                        <a href="/" class="btn btn-outline-dark mt-2">回到所有商品</a>
-                    {% else %}
-                        目前這個分類還沒有商品上架，快來成為第一個賣家！
-                    {% endif %}
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card shadow-sm border-0 sticky-top" style="top: 80px; z-index: 1;">
+                <div class="card-header bg-primary text-white fw-bold py-2">
+                    <i class="bi bi-globe"></i> 外部行情比價(原價)
+                </div>
+                <div class="card-body bg-light bg-opacity-25 p-3">
+                    <p class="small text-muted mb-2">找不到想要的？查詢網路價格參考。</p>
+                    
+                    <div class="input-group mb-3">
+                        {% if query %}
+                            <input type="text" id="externalSearchInput" class="form-control form-control-sm" value="{{ query }}" placeholder="輸入商品名稱">
+                        {% else %}
+                            <input type="text" id="externalSearchInput" class="form-control form-control-sm" placeholder="輸入商品名稱">
+                        {% endif %}
+                        <button class="btn btn-warning btn-sm fw-bold" onclick="searchExternalMarket()" id="btnExternalSearch">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+
+                    <div id="externalResultsArea" class="d-none">
+                        <h6 class="fw-bold mb-2 small text-muted border-bottom pb-1">
+                            網路參考價格：
+                        </h6>
+                        <div id="externalResultsList" class="d-flex flex-column gap-2 pe-1" style="max-height: 500px; overflow-y: auto;">
+                            </div>
+                    </div>
+
+                    <div id="externalDefaultMsg" class="text-center py-4 text-muted">
+                        <i class="bi bi-cart-check display-4 opacity-25"></i>
+                        <p class="small mt-2">輸入關鍵字查詢</p>
+                    </div>
                 </div>
             </div>
-            {% endfor %}
         </div>
+
     </div>
 </div>
 
+<script>
+function searchExternalMarket(keyword = null) {
+    if (!keyword) {
+        const input = document.getElementById('externalSearchInput');
+        if (input) {
+            keyword = input.value.trim();
+        }
+    }
+    
+    if (!keyword) {
+        alert('請輸入商品名稱！');
+        return;
+    }
+
+    const btn = document.getElementById('btnExternalSearch');
+    const resultArea = document.getElementById('externalResultsArea');
+    const listArea = document.getElementById('externalResultsList');
+    const defaultMsg = document.getElementById('externalDefaultMsg');
+    
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    
+    defaultMsg.classList.add('d-none');
+    resultArea.classList.remove('d-none');
+    listArea.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary spinner-border-sm"></div><p class="mt-2 small text-muted">搜尋中...</p></div>';
+
+    const formData = new FormData();
+    formData.append('keyword', keyword);
+    const csrfToken = '{{ csrf_token }}'; 
+    formData.append('csrfmiddlewaretoken', csrfToken);
+
+    fetch('{% url "products:magic_fill_product" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+
+        if (data.status === 'success' && data.data.length > 0) {
+            renderExternalResults(data.data);
+        } else {
+            listArea.innerHTML = '<div class="text-center text-muted small py-3">❌ 找不到相關資訊。</div>';
+        }
+    })
+    .catch(error => {
+        console.error(error);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        listArea.innerHTML = '<div class="text-center text-danger small py-3">連線錯誤。</div>';
+    });
+}
+
+// [修改 3] 優化 JavaScript 生成的 HTML
+function renderExternalResults(items) {
+    const listArea = document.getElementById('externalResultsList');
+    listArea.innerHTML = ''; 
+
+    items.forEach(item => {
+        // 使用 text-line-clamp-2 處理長標題
+        // 圖片固定寬度 50px，flex-shrink-0 防止被擠壓
+        const html = `
+            <div class="card border-0 shadow-sm">
+                <div class="d-flex align-items-center p-2">
+                    <div class="flex-shrink-0 bg-white border rounded text-center p-1" style="width: 50px; height: 50px;">
+                        <img src="${item.image}" style="max-width: 100%; max-height: 100%; object-fit: contain;" alt="img">
+                    </div>
+                    
+                    <div class="flex-grow-1 ms-2" style="min-width: 0;"> 
+                        <h6 class="mb-1 fw-bold small text-line-clamp-2" title="${item.title}">
+                            <a href="#" class="text-dark text-decoration-none" onclick="return false;">${item.title}</a>
+                        </h6>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span class="text-danger fw-bold small">$${item.price}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        listArea.innerHTML += html;
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const query = "{{ query|default:'' }}";
+    if (query) {
+        searchExternalMarket(query);
+    }
+});
+</script>
 {% endblock %}

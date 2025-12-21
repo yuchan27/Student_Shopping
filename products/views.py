@@ -224,3 +224,7 @@ def magic_fill_product(request):
     except Exception as e:
         print(f"API Error: {e}")
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    return render(request, 'products/product_detail.html', {'product': product})
