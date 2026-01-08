@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            
+            <div class="card card-form hero-glass rounded-4 overflow-hidden position-relative"
+                 style="box-shadow: 0 0 30px rgba(13, 202, 240, 0.15); border: 1px solid rgba(13, 202, 240, 0.3);">
+                
+                <div class="position-absolute top-0 start-0 w-100" 
+                     style="height: 3px; background: linear-gradient(90deg, var(--shopee-purple), #0dcaf0, var(--shopee-purple));">
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    
+                    <div class="text-center mb-5">
+                        <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle"
+                             style="width: 70px; height: 70px; background: rgba(13, 202, 240, 0.1); box-shadow: 0 0 20px rgba(13, 202, 240, 0.3);">
+                            <i class="bi bi-sliders text-info fs-2"></i>
+                        </div>
+                        <h2 class="fw-bold text-white title-glow">
+                            參數調校
+                        </h2>
+                        <p class="text-info small opacity-75 letter-spacing-2">ITEM MODIFICATION</p>
+                        <div class="badge bg-dark border border-secondary text-light mt-2 px-3 py-2">
+                            目標對象: {{ product.name }}
+                        </div>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" class="custom-cyber-form">
+                        {% csrf_token %}
+                        
+                        {% for field in form %}
+                        <div class="mb-4 form-group-cyber">
+                            
+                            <label class="form-label text-light fw-bold small text-uppercase">
+                                <i class="bi bi-caret-right-fill me-1 text-info"></i> {{ field.label }}
+                            </label>
+
+                            <div class="input-wrapper">
+                                {{ field }}
+                            </div>
+
+                            {% if field.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in field.errors %}
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            {% if field.help_text %}
+                                <div class="form-text text-muted small fst-italic">{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="d-grid gap-3 mt-5">
+                            <button type="submit" class="btn btn-info btn-lg fw-bold text-dark shadow-lg"
+                                    style="background: #0dcaf0; border: none; box-shadow: 0 0 15px rgba(13, 202, 240, 0.5);">
+                                <i class="bi bi-save2-fill me-2"></i> 儲存修改配置
+                            </button>
+                            
+                            <a href="{% url 'shops:shop_detail' product.shop.id %}" class="btn btn-outline-light btn-lg opacity-75">
+                                <i class="bi bi-x-lg me-2"></i> 放棄變更
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('.custom-cyber-form input, .custom-cyber-form textarea, .custom-cyber-form select');
+        inputs.forEach(input => {
+            if(input.type !== 'checkbox' && input.type !== 'file') {
+                input.classList.add('form-control'); // 補回 Bootstrap 樣式
+                input.classList.add('bg-transparent'); // 讓 CSS 覆蓋生效
+            }
+            if(input.type === 'file') {
+                input.classList.add('form-control');
+            }
+        });
+    });
+</script>
+{% endblock %}

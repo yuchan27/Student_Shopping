@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-4 d-flex flex-column justify-content-center">
+                    <div class="mb-4">
+                        <div class="profile-avatar-glow">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                    </div>
+                    
+                    <h3 class="fw-bold text-white title-glow">{{ user.nickname|default:user.username }}</h3>
+                    <p class="text-white-50 small letter-spacing-1">{{ user.email }}</p>
+                    
+                    <hr class="border-secondary my-4">
+
+                    <div class="d-grid gap-3">
+                        <a href="{% url 'users:profile' %}" class="btn btn-shopee shadow-lg">
+                            <i class="bi bi-person-gear me-2"></i> 基本資料
+                        </a>
+                        <a href="{% url 'orders:my_orders' %}" class="btn btn-outline-light hover-neon">
+                            <i class="bi bi-bag-check me-2"></i> 我的訂單歷史
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header bg-transparent border-bottom border-secondary py-3">
+                    <h5 class="mb-0 fw-bold text-white title-glow">
+                        <i class="bi bi-pencil-square text-neon me-2"></i> 編輯個人檔案
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post" id="profileForm" class="custom-cyber-form" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label text-neon small fw-bold letter-spacing-1">
+                                <i class="bi bi-shield-lock me-1"></i> 登入帳號 (不可修改)
+                            </label>
+                            <input type="text" class="form-control" value="{{ user.username }}" disabled readonly>
+                            <div class="form-text text-white-50">這是您登入系統的唯一識別碼。</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-white fw-bold">{{ form.nickname.label }}</label>
+                            {{ form.nickname }}
+                            <div class="form-text text-white-50">設定一個好記的名字，這會顯示在您的商店頁面。</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label class="form-label text-white fw-bold">{{ form.email.label }}</label>
+                                {{ form.email }}
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label for="id_phone" class="form-label text-white fw-bold">{{ form.phone.label }}</label>
+                                <div class="input-group has-validation">                                    <input type="tel" 
+                                           name="phone" 
+                                           id="id_phone" 
+                                           class="form-control" 
+                                           value="{{ form.phone.value|default:'' }}" 
+                                           maxlength="10"
+                                           inputmode="numeric"
+                                           placeholder="09xxxxxxxx">
+                                    
+                                    <div class="invalid-feedback">
+                                        格式錯誤！請輸入 09 開頭的 10 碼數字。
+                                    </div>
+                                </div>
+                                <div class="form-text text-white-50">將用於訂單聯繫，請務必填寫正確。</div>
+                                
+                                {% if form.phone.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ form.phone.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <hr class="border-secondary my-4">
+
+                        <div class="d-flex justify-content-between align-items-center mb-4 p-3 rounded" style="background: rgba(255,255,255,0.05);">
+                            <div>
+                                <h6 class="fw-bold mb-1 text-white">密碼設定</h6>
+                                <p class="text-white-50 small mb-0">定期更換密碼可以保護您的帳號安全。</p>
+                            </div>
+                            <button type="button" class="btn btn-outline-danger btn-sm border-danger text-danger hover-white" data-bs-toggle="modal" data-bs-target="#passwordChangeModal">
+                                <i class="bi bi-key-fill"></i> 更改密碼
+                            </button>
+                        </div>
+
+                        <div class="d-grid mt-2">
+                            <button type="submit" class="btn btn-shopee btn-lg group-hover-glow">
+                                <i class="bi bi-check-lg"></i> 儲存變更
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="passwordChangeModal" tabindex="-1" aria-labelledby="passwordChangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white">
+            
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="passwordChangeModalLabel">
+                    <i class="bi bi-shield-lock-fill text-info me-2"></i>修改登入密碼
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body p-4">
+                <form id="passwordChangeForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_old_password" class="form-label text-white fw-bold">舊密碼</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-unlock"></i></span>
+                            <input type="password" name="old_password" class="form-control" id="id_old_password" required placeholder="請輸入目前的密碼">
+                            <div class="invalid-feedback" id="error_old_password"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_new_password1" class="form-label text-white fw-bold">新密碼</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="new_password1" class="form-control" id="id_new_password1" required placeholder="請輸入新密碼">
+                            <div class="invalid-feedback" id="error_new_password1"></div>
+                        </div>
+                        
+                        <div class="form-text small mt-3 p-3 rounded bg-dark">
+                            <strong class="text-info"><i class="bi bi-info-circle"></i> 密碼規則提示：</strong>
+                            <ul class="mb-0 ps-3 mt-1 text-white-50">
+                                <li>密碼長度至少需 <strong>8 個字元</strong></li>
+                                <li>請勿使用太常見的密碼 (如 12345678)</li>
+                                <li>建議包含英文與數字混合</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_new_password2" class="form-label text-white fw-bold">確認新密碼</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                            <input type="password" name="new_password2" class="form-control" id="id_new_password2" required placeholder="再次輸入新密碼">
+                            <div class="invalid-feedback" id="error_new_password2"></div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-shopee fw-bold py-2 shadow-sm" onclick="submitPasswordChange()">
+                            <i class="bi bi-check2-circle"></i> 確認修改
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // === 1. 手機號碼驗證邏輯 (維持原樣，僅配合 class) ===
+    const profileForm = document.getElementById('profileForm');
+    const phoneInput = document.getElementById('id_phone');
+
+    if (profileForm && phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, ''); 
+            if (this.classList.contains('is-invalid')) {
+                if (/^09\d{8}$/.test(this.value)) {
+                    this.classList.remove('is-invalid');
+                }
+            }
+        });
+
+        profileForm.addEventListener('submit', function(e) {
+            const phone = phoneInput.value;
+            const regex = /^09\d{8}$/; 
+            if (phone.length > 0 && !regex.test(phone)) {
+                e.preventDefault(); 
+                e.stopPropagation();
+                phoneInput.classList.add('is-invalid'); 
+                if(navigator.vibrate) navigator.vibrate(200); 
+                alert('⚠️ 手機號碼格式不正確！\n請輸入「09」開頭的 10 碼數字。');
+                phoneInput.focus();
+            }
+        });
+    }
+});
+
+// === 2. 更改密碼 AJAX 邏輯 (維持原樣) ===
+function submitPasswordChange() {
+    const form = document.getElementById('passwordChangeForm');
+    const formData = new FormData(form);
+    const btn = document.querySelector('#passwordChangeModal .btn-shopee'); // 注意這裡改成選取 btn-shopee
+    
+    document.querySelectorAll('#passwordChangeModal .is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    document.querySelectorAll('#passwordChangeModal .invalid-feedback').forEach(el => el.innerText = '');
+
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 處理中...';
+
+    fetch("{% url 'users:ajax_password_change' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+
+        if (data.status === 'success') {
+            const modalEl = document.getElementById('passwordChangeModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+            form.reset();
+            alert('✅ ' + data.message);
+        } else {
+            if (data.errors) {
+                for (const [field, msg] of Object.entries(data.errors)) {
+                    const inputId = 'id_' + field;
+                    const inputEl = document.getElementById(inputId);
+                    const errorEl = document.getElementById('error_' + field);
+                    
+                    if (inputEl && errorEl) {
+                        inputEl.classList.add('is-invalid');
+                        errorEl.innerText = msg;
+                    }
+                }
+            } else {
+                alert('❌ 發生未知錯誤，請稍後再試。');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        alert('❌ 系統連線錯誤，請檢查網路狀態。');
+    });
+}
+</script>
+
+{% endblock %}

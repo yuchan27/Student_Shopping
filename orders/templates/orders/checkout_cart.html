@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            
+            <div class="card card-form hero-glass rounded-4 overflow-hidden"
+                 style="box-shadow: 0 0 30px rgba(0, 255, 204, 0.15); border: 1px solid rgba(0, 255, 204, 0.3);">
+                
+                <div class="position-absolute top-0 start-0 w-100" style="height: 3px; background: linear-gradient(90deg, transparent, var(--neon-green), transparent);"></div>
+
+                <div class="card-body p-4 p-md-5">
+                    
+                    <div class="mb-4 text-center">
+                        <h2 class="fw-bold text-white d-flex align-items-center justify-content-center">
+                            <i class="bi bi-wallet2 me-3" style="color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green);"></i>
+                            結帳確認
+                        </h2>
+                        <p class="text-muted small">SECURE CHECKOUT TERMINAL</p>
+                    </div>
+
+                    <div class="mb-4 rounded-3 p-3" style="background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <h5 class="text-white mb-3 small text-uppercase" style="letter-spacing: 1px; color: #adb5bd;">
+                            <i class="bi bi-cart3 me-2"></i>即將結帳商品
+                        </h5>
+                        
+                        <div class="list-group list-group-flush">
+                            {% for item in cart_items %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0 py-3" 
+                                 style="background: transparent; border-color: rgba(255, 255, 255, 0.1);">
+                                
+                                <div class="d-flex align-items-center text-white">
+                                    <span class="badge bg-secondary me-3 rounded-1" style="opacity: 0.7;">x{{ item.quantity }}</span>
+                                    <span class="fw-bold">{{ item.product.name }}</span>
+                                </div>
+                                
+                                <span class="fw-bold fs-5" style="color: var(--neon-green); text-shadow: 0 0 5px rgba(0, 255, 204, 0.5);">
+                                    ${{ item.total_price }}
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <form method="post" id="cartForm" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-5">
+                            <label class="form-label text-white fw-bold">
+                                <i class="bi bi-phone-vibrate me-2" style="color: var(--shopee-purple);"></i>請輸入聯絡電話
+                            </label>
+                            
+                            <div class="input-group has-validation">
+                                <span class="input-group-text border-secondary text-white" 
+                                      style="background-color: rgba(255,255,255,0.05);">
+                                    <i class="bi bi-telephone"></i>
+                                </span>
+                                <input type="tel" 
+                                       name="phone" 
+                                       id="cartPhone" 
+                                       class="form-control form-control-lg text-white" 
+                                       style="background-color: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.2);"
+                                       placeholder="09xxxxxxxx" 
+                                       value="{{ request.user.profile.phone|default:'' }}" 
+                                       maxlength="10"
+                                       inputmode="numeric"
+                                       required>
+                                <div class="invalid-feedback text-end" style="color: #ff6b6b; text-shadow: 0 0 5px rgba(255,0,0,0.5);">
+                                    <i class="bi bi-exclamation-circle me-1"></i>
+                                    格式錯誤 (需為 09 開頭，共 10 碼)
+                                </div>
+                            </div>
+                            <div class="form-text mt-2 small" style="color: rgba(255,255,255,0.5);">
+                                * 用於配送聯繫，請務必填寫正確
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="btn btn-lg fw-bold text-dark shadow-lg position-relative overflow-hidden"
+                                    style="background: var(--neon-green); border: none; box-shadow: 0 0 20px rgba(0, 255, 204, 0.4);">
+                                <span class="position-relative z-1">
+                                    <i class="bi bi-credit-card-2-front me-2"></i> 確認付款 (全部結帳)
+                                </span>
+                            </button>
+                            
+                            <a href="{% url 'orders:view_cart' %}" class="btn btn-outline-light btn-lg" style="opacity: 0.8;">
+                                <i class="bi bi-arrow-left me-2"></i> 返回購物車
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const phoneInput = document.getElementById('cartPhone');
+    const form = document.getElementById('cartForm');
+
+    // 1. 限制只能輸入數字 (即時過濾)
+    phoneInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        // 如果原本是紅框(錯誤狀態)，且現在輸入正確了，就移除紅框
+        if (this.classList.contains('is-invalid')) {
+            if (/^09\d{8}$/.test(this.value)) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        }
+    });
+
+    // 2. 表單送出前檢查
+    form.addEventListener('submit', function(e) {
+        const phone = phoneInput.value;
+        const regex = /^09\d{8}$/; // Regex: 09開頭，後面接8個數字
+
+        if (!regex.test(phone)) {
+            e.preventDefault(); // 阻止送出
+            e.stopPropagation();
+            
+            // 顯示紅框與錯誤訊息
+            phoneInput.classList.remove('is-valid');
+            phoneInput.classList.add('is-invalid');
+            
+            // 震動提示
+            if(navigator.vibrate) navigator.vibrate(200);
+            
+            // 替換原本醜醜的 alert，改用 SweetAlert 風格的簡單聚焦
+            phoneInput.focus();
+            
+            // 加入抖動動畫特效
+            phoneInput.classList.add('animate__animated', 'animate__shakeX');
+            setTimeout(() => {
+                phoneInput.classList.remove('animate__animated', 'animate__shakeX');
+            }, 500);
+        }
+    });
+});
+</script>
+
+{% endblock %}

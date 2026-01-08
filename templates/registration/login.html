@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5 col-xl-4">
+            
+            <div class="hero-glass rounded-4 overflow-hidden position-relative" 
+                 style="border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);">
+                
+                <div class="position-absolute top-0 start-0 w-100" 
+                     style="height: 4px; background: linear-gradient(90deg, transparent, #adb5bd, transparent);"></div>
+
+                <div class="text-center pt-5 pb-4 px-4">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle border border-secondary border-opacity-50" 
+                         style="width: 70px; height: 70px; background: rgba(255, 255, 255, 0.05); box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);">
+                        <i class="bi bi-shield-lock-fill text-secondary" style="font-size: 2rem; color: #adb5bd !important;"></i>
+                    </div>
+                    <h3 class="fw-bold text-white mb-1" style="letter-spacing: 2px;">SYSTEM LOGIN</h3>
+                    <p class="small text-uppercase mb-0" style="color: #6c757d; letter-spacing: 1px;">
+                        <i class="bi bi-broadcast me-1"></i> 身份驗證程序
+                    </p>
+                </div>
+
+                <div class="card-body p-4 pt-0">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert bg-transparent border-danger text-danger d-flex align-items-center mb-4 p-2 rounded-3 animate__animated animate__flash" 
+                                 style="border: 1px solid rgba(220, 53, 69, 0.5); background: rgba(220, 53, 69, 0.1) !important;">
+                                <i class="bi bi-exclamation-triangle-fill fs-4 me-3 ms-2"></i>
+                                <div>
+                                    <strong class="text-uppercase small d-block" style="letter-spacing: 1px;">Access Denied</strong>
+                                    <span class="small opacity-75">帳號或密碼錯誤</span>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-4">
+                            <label class="form-label text-uppercase fw-bold small ps-1" style="color: #adb5bd; letter-spacing: 1px;">
+                                <i class="bi bi-person me-1"></i> 帳號 / Username
+                            </label>
+                            <div class="cyber-input-wrapper">
+                                <input type="text" name="username" class="form-control" required placeholder="Enter User ID">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label text-uppercase fw-bold small ps-1" style="color: #adb5bd; letter-spacing: 1px;">
+                                <i class="bi bi-key me-1"></i> 密碼 / Password
+                            </label>
+                            <div class="cyber-input-wrapper">
+                                <input type="password" name="password" class="form-control" required placeholder="Enter Password">
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-lg rounded-pill fw-bold text-uppercase silver-button">
+                                <span class="position-relative z-1">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i> 登入系統
+                                </span>
+                            </button>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4 small">
+                            <a href="{% url 'users:register' %}" class="text-secondary text-decoration-none hover-white transition-300"> 註冊帳號 <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

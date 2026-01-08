@@ -1,0 +1,19 @@
+# .gitignore
+
+# 忽略 Python 編譯檔
+__pycache__/
+*.py[cod]
+*.pyc
+
+# 忽略資料庫 (因為這是你電腦裡的測試資料)
+db.sqlite3
+.vscode/
+# 忽略虛擬環境 (別人的電腦不需要你的環境檔，他們可以自己裝)
+venv/
+env/
+.env
+
+# 忽略媒體檔案 (通常圖片不建議直接傳進程式碼庫，除非是 icon)
+media/
+.DS_Store
+/static

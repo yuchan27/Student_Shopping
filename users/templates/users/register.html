@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            
+            <div class="hero-glass rounded-4 overflow-hidden position-relative" 
+                 style="border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);">
+                
+                <div class="position-absolute top-0 start-0 w-100" 
+                     style="height: 4px; background: linear-gradient(90deg, transparent, #adb5bd, transparent);"></div>
+
+                <div class="text-center pt-5 pb-4 px-4">
+                    <div class="d-inline-flex align-items-center justify-content-center mb-3 rounded-circle border border-secondary border-opacity-50" 
+                         style="width: 80px; height: 80px; background: rgba(255, 255, 255, 0.05); box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);">
+                        <i class="bi bi-person-fill-gear text-secondary" style="font-size: 2.5rem; color: #adb5bd !important;"></i>
+                    </div>
+                    <h3 class="fw-bold text-white mb-1" style="letter-spacing: 2px; text-shadow: 0 0 10px rgba(255,255,255,0.2);">
+                        MEMBER REGISTER
+                    </h3>
+                    <p class="small text-uppercase mb-0" style="color: #6c757d; letter-spacing: 1px;">
+                        <i class="bi bi-shield-lock me-1"></i> 建立您的帳戶
+                    </p>
+                </div>
+
+                <div class="card-body p-4 p-md-5 pt-0">
+                    <form method="post" id="registerForm" novalidate>
+                        {% csrf_token %}
+
+                        {% for field in form %}
+                            <div class="mb-4 position-relative">
+                                <label class="form-label text-uppercase fw-bold small ps-1" 
+                                       style="color: #adb5bd; letter-spacing: 1px;">
+                                    {{ field.label }}
+                                </label>
+
+                                <div class="cyber-input-wrapper">
+                                    {{ field }}
+                                </div>
+
+                                {% if field.errors %}
+                                    <div class="text-danger small mt-2 fw-bold d-flex align-items-center animate__animated animate__headShake">
+                                        <i class="bi bi-x-circle me-2"></i>
+                                        {{ field.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="invalid-feedback fw-bold" id="error_{{ field.name }}"></div>
+
+                                {% if field.help_text %}
+                                    <div class="form-text small mt-1" style="color: #6c757d;">
+                                        <i class="bi bi-info-circle me-1"></i>{{ field.help_text }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <div class="d-grid mt-5">
+                            <button type="submit" class="btn btn-lg rounded-pill fw-bold text-uppercase position-relative overflow-hidden silver-button">
+                                <span class="position-relative z-1">
+                                    <i class="bi bi-arrow-right-circle me-2"></i> 完成註冊
+                                </span>
+                            </button>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <a href="/" class="text-secondary text-decoration-none small hover-white transition-300">
+                                <i class="bi bi-arrow-left me-1"></i> 返回首頁
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer text-center py-3 border-top border-secondary border-opacity-25 bg-transparent">
+                    <small class="text-muted">
+                        已經有帳號了嗎？ 
+                        <a href="{% url 'login' %}" class="fw-bold text-decoration-none text-light transition-300">
+                            立即登入 <i class="bi bi-box-arrow-in-right"></i>
+                        </a>
+                    </small>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+ 
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const phoneInput = document.querySelector('input[name="phone"]');
+    const form = document.getElementById('registerForm');
+
+    if (phoneInput) {
+        phoneInput.setAttribute('type', 'tel');           
+        phoneInput.setAttribute('maxlength', '10');       
+        phoneInput.setAttribute('inputmode', 'numeric');  
+        
+        phoneInput.classList.add('form-control'); 
+
+        phoneInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, ''); 
+            if (this.classList.contains('is-invalid')) {
+                if (/^09\d{8}$/.test(this.value)) {
+                    this.classList.remove('is-invalid');
+                    const errorDiv = document.querySelector('#error_phone');
+                    if(errorDiv) errorDiv.innerText = '';
+                }
+            }
+        });
+
+        form.addEventListener('submit', function(e) {
+            const phone = phoneInput.value;
+            // 如果手機欄位是空的 (因為是選填)，就不驗證格式
+            if (phone && phone.trim() !== "") {
+                const regex = /^09\d{8}$/; 
+                if (!regex.test(phone)) {
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                    phoneInput.classList.add('is-invalid');
+                    let errorDiv = document.getElementById('error_phone');
+                    if (!errorDiv) { errorDiv = phoneInput.nextElementSibling; }
+                    if (errorDiv) {
+                        errorDiv.innerHTML = '<i class="bi bi-x-circle me-1"></i> 格式錯誤！需為 09 開頭的 10 碼數字。';
+                        errorDiv.style.display = 'block'; 
+                    }
+                    phoneInput.focus();
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center align-items-center" style="min-height: 60vh;">
+        <div class="col-md-6 col-lg-5">
+            
+            <div class="card hero-glass rounded-4 overflow-hidden text-center position-relative"
+                 style="box-shadow: 0 0 40px rgba(255, 59, 59, 0.2); border: 1px solid rgba(255, 59, 59, 0.4);">
+                
+                <div class="position-absolute top-0 start-0 w-100" 
+                     style="height: 4px; background: linear-gradient(90deg, transparent, #ff3b3b, transparent); box-shadow: 0 0 10px #ff3b3b;">
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    
+                    <div class="mb-4">
+                        <div class="warning-icon-wrapper d-inline-block">
+                            <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 4rem;"></i>
+                        </div>
+                        <h2 class="fw-bold text-white mt-3" style="text-shadow: 0 0 10px rgba(255, 59, 59, 0.6);">
+                            系統警告
+                        </h2>
+                        <p class="text-danger fw-bold letter-spacing-1">IRREVERSIBLE ACTION</p>
+                    </div>
+
+                    <h5 class="text-light mb-4 opacity-75">
+                        確定要從商店中移除此商品？
+                    </h5>
+                    
+                    <div class="rounded-3 p-3 mb-4 d-flex align-items-center text-start position-relative overflow-hidden" 
+                         style="background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 59, 59, 0.2);">
+                        
+                        <div class="position-absolute top-0 start-0 w-100 h-100" 
+                             style="background-image: linear-gradient(45deg, rgba(255,255,255,0.03) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.03) 50%, rgba(255,255,255,0.03) 75%, transparent 75%, transparent); background-size: 10px 10px; pointer-events: none;">
+                        </div>
+
+                        <div class="flex-shrink-0 position-relative z-1">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" class="rounded shadow-sm" 
+                                     style="width: 80px; height: 80px; object-fit: cover; border: 1px solid rgba(255,255,255,0.2);">
+                            {% else %}
+                                <div class="rounded d-flex align-items-center justify-content-center bg-dark border border-secondary" 
+                                     style="width: 80px; height: 80px;">
+                                    <i class="bi bi-image text-muted fs-4"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="ms-3 position-relative z-1">
+                            <h5 class="fw-bold text-white mb-1">{{ product.name }}</h5>
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-danger bg-opacity-25 text-danger border border-danger me-2">Delete Target</span>
+                                <span class="fw-bold" style="color: var(--neon-green);">${{ product.price }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="text-muted small mb-4">
+                        <i class="bi bi-info-circle me-1"></i>
+                        注意：刪除後資料將無法復原，請謹慎操作。
+                    </p>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                            
+                            <a href="{% url 'shops:shop_detail' product.shop.id %}" 
+                               class="btn btn-outline-light px-4 py-2 rounded-pill fw-bold" 
+                               style="min-width: 120px; border-color: rgba(255,255,255,0.2);">
+                                <i class="bi bi-arrow-return-left me-2"></i>取消
+                            </a>
+
+                            <button type="submit" 
+                                    class="btn btn-danger px-4 py-2 rounded-pill fw-bold shadow-lg" 
+                                    style="min-width: 140px; box-shadow: 0 0 20px rgba(255, 59, 59, 0.5);">
+                                <i class="bi bi-trash3-fill me-2"></i> 確定刪除
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

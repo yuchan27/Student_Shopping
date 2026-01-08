@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <div class="mb-5">
+        <h2 class="fw-bold d-flex align-items-center" style="color: #fff;">
+            <span style="width: 5px; height: 30px; background: var(--shopee-purple); display: inline-block; margin-right: 15px; box-shadow: 0 0 10px var(--shopee-purple);"></span>
+            ⚡ 總管理員控制台
+        </h2>
+        <p class="text-muted ms-4">系統狀態監控與數據管理</p>
+    </div>
+
+    <div class="row mb-5 g-4">
+        <div class="col-md-4">
+            <div class="hero-glass h-100 p-4 rounded-4 position-relative overflow-hidden" 
+                 style="border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 15px rgba(0, 210, 255, 0.1);">
+                <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
+                    <div>
+                        <h6 class="text-uppercase" style="color: #00d2ff; letter-spacing: 2px;">總會員數</h6>
+                        <h1 class="display-4 fw-bold text-white mb-0" style="text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);">{{ user_count }}</h1>
+                    </div>
+                    <i class="bi bi-people text-white opacity-25" style="font-size: 4rem;"></i>
+                </div>
+                <div class="position-absolute top-0 end-0 bg-info opacity-25 blur-decoration" style="width: 100px; height: 100px; filter: blur(50px);"></div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="hero-glass h-100 p-4 rounded-4 position-relative overflow-hidden" 
+                 style="border: 1px solid rgba(132, 40, 252, 0.3); box-shadow: 0 0 15px rgba(132, 40, 252, 0.1);">
+                <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
+                    <div>
+                        <h6 class="text-uppercase" style="color: #bf80ff; letter-spacing: 2px;">總商店數</h6>
+                        <h1 class="display-4 fw-bold text-white mb-0" style="text-shadow: 0 0 10px rgba(132, 40, 252, 0.5);">{{ shop_count }}</h1>
+                    </div>
+                    <i class="bi bi-shop text-white opacity-25" style="font-size: 4rem;"></i>
+                </div>
+                <div class="position-absolute top-0 end-0 bg-primary opacity-25 blur-decoration" style="width: 100px; height: 100px; filter: blur(50px);"></div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="hero-glass h-100 p-4 rounded-4 position-relative overflow-hidden" 
+                 style="border: 1px solid rgba(0, 255, 204, 0.3); box-shadow: 0 0 15px rgba(0, 255, 204, 0.1);">
+                <div class="d-flex justify-content-between align-items-center position-relative" style="z-index: 2;">
+                    <div>
+                        <h6 class="text-uppercase" style="color: var(--neon-green); letter-spacing: 2px;">總商品數</h6>
+                        <h1 class="display-4 fw-bold text-white mb-0" style="text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);">{{ product_count }}</h1>
+                    </div>
+                    <i class="bi bi-box-seam text-white opacity-25" style="font-size: 4rem;"></i>
+                </div>
+                <div class="position-absolute top-0 end-0 bg-success opacity-25 blur-decoration" style="width: 100px; height: 100px; filter: blur(50px);"></div>
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-pills mb-4 gap-3" id="adminTab" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active custom-tab-btn" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button">
+                <i class="bi bi-people-fill me-2"></i>會員清單
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link custom-tab-btn" id="shops-tab" data-bs-toggle="tab" data-bs-target="#shops" type="button">
+                <i class="bi bi-shop-window me-2"></i>商店清單
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link custom-tab-btn" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button">
+                <i class="bi bi-box-fill me-2"></i>商品清單
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="adminTabContent">
+        
+        <div class="tab-pane fade show active" id="users">
+            <div class="hero-glass rounded-4 overflow-hidden border border-secondary">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.05);">
+                        <thead style="border-bottom: 1px solid rgba(255,255,255,0.2); background: rgba(0, 210, 255, 0.05);">
+                            <tr class="text-uppercase fw-bold" style="letter-spacing: 1px;">
+                                <th class="ps-4 py-3" style="color: #00d2ff; text-shadow: 0 0 8px rgba(0, 210, 255, 0.3);">ID</th>
+                                <th class="py-3" style="color: #00d2ff; text-shadow: 0 0 8px rgba(0, 210, 255, 0.3);">使用者名稱</th>
+                                <th class="py-3" style="color: #00d2ff; text-shadow: 0 0 8px rgba(0, 210, 255, 0.3);">Email</th>
+                                <th class="py-3" style="color: #00d2ff; text-shadow: 0 0 8px rgba(0, 210, 255, 0.3);">加入時間</th>
+                                <th class="py-3 pe-4" style="color: #00d2ff; text-shadow: 0 0 8px rgba(0, 210, 255, 0.3);">身份</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-0">
+                            {% for u in users %}
+                            <tr class="text-white">
+                                <td class="ps-4 text-muted">#{{ u.id }}</td>
+                                <td class="fw-bold text-light">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center text-white" style="width: 30px; height: 30px; font-size: 0.8rem;">
+                                            {{ u.username|make_list|first|upper }}
+                                        </div>
+                                        {{ u.username }}
+                                    </div>
+                                </td>
+                                <td class="text-light opacity-75">{{ u.email }}</td>
+                                <td class="text-light opacity-75">{{ u.date_joined|date:"Y/m/d" }}</td>
+                                <td class="pe-4">
+                                    {% if u.is_superuser %}
+                                        <span class="badge border border-danger text-danger bg-transparent">管理員</span>
+                                    {% elif u.shop %}
+                                        <span class="badge border border-success text-success bg-transparent">賣家</span>
+                                    {% else %}
+                                        <span class="badge border border-secondary text-secondary bg-transparent">買家</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="shops">
+            <div class="hero-glass rounded-4 overflow-hidden border border-secondary">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.05);">
+                        <thead style="border-bottom: 1px solid rgba(255,255,255,0.2); background: rgba(132, 40, 252, 0.05);">
+                            <tr class="text-uppercase fw-bold" style="letter-spacing: 1px;">
+                                <th class="ps-4 py-3" style="color: #bf80ff; text-shadow: 0 0 8px rgba(132, 40, 252, 0.3);">ID</th>
+                                <th class="py-3" style="color: #bf80ff; text-shadow: 0 0 8px rgba(132, 40, 252, 0.3);">商店名稱</th>
+                                <th class="py-3" style="color: #bf80ff; text-shadow: 0 0 8px rgba(132, 40, 252, 0.3);">店長</th>
+                                <th class="py-3" style="color: #bf80ff; text-shadow: 0 0 8px rgba(132, 40, 252, 0.3);">商品數</th>
+                                <th class="py-3 pe-4" style="color: #bf80ff; text-shadow: 0 0 8px rgba(132, 40, 252, 0.3);">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-0">
+                            {% for shop in shops %}
+                            <tr class="text-white">
+                                <td class="ps-4 text-muted">#{{ shop.id }}</td>
+                                <td class="fw-bold text-light">{{ shop.name }}</td>
+                                <td class="text-light opacity-75">{{ shop.owner.username }}</td>
+                                <td>
+                                    <span class="badge rounded-pill bg-dark border border-secondary text-white px-3">
+                                        {{ shop.products.count }}
+                                    </span>
+                                </td>
+                                <td class="pe-4">
+                                    <a href="{% url 'shops:shop_detail' shop.id %}" class="btn btn-sm btn-outline-light rounded-pill px-3" target="_blank">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i> 查看
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="products">
+            <div class="hero-glass rounded-4 overflow-hidden border border-secondary">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="--bs-table-bg: transparent; --bs-table-hover-bg: rgba(255,255,255,0.05);">
+                        <thead style="border-bottom: 1px solid rgba(255,255,255,0.2); background: rgba(0, 255, 204, 0.05);">
+                            <tr class="text-uppercase fw-bold" style="letter-spacing: 1px;">
+                                <th class="ps-4 py-3" style="color: var(--neon-green); text-shadow: 0 0 8px rgba(0, 255, 204, 0.3);">圖片</th>
+                                <th class="py-3" style="color: var(--neon-green); text-shadow: 0 0 8px rgba(0, 255, 204, 0.3);">商品名稱</th>
+                                <th class="py-3" style="color: var(--neon-green); text-shadow: 0 0 8px rgba(0, 255, 204, 0.3);">價格</th>
+                                <th class="py-3" style="color: var(--neon-green); text-shadow: 0 0 8px rgba(0, 255, 204, 0.3);">庫存</th>
+                                <th class="py-3" style="color: var(--neon-green); text-shadow: 0 0 8px rgba(0, 255, 204, 0.3);">所屬商店</th>
+                                <th class="py-3 pe-4" style="color: var(--neon-green); text-shadow: 0 0 8px rgba(0, 255, 204, 0.3);">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="border-0">
+                            {% for product in products %}
+                            <tr class="text-white">
+                                <td class="ps-4">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" style="width: 40px; height: 40px; object-fit: cover;" class="rounded border border-secondary">
+                                    {% else %}
+                                        <div class="bg-dark rounded border border-secondary d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            <i class="bi bi-image text-muted"></i>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold text-light">{{ product.name }}</td>
+                                <td class="fw-bold" style="color: var(--neon-green);">${{ product.price }}</td>
+                                <td>
+                                    {% if product.stock == 0 %}
+                                        <span class="badge bg-danger text-white">售完</span>
+                                    {% else %}
+                                        {{ product.stock }}
+                                    {% endif %}
+                                </td>
+                                <td class="text-light opacity-75">{{ product.shop.name }}</td>
+                                <td class="pe-4">
+                                    <a href="{% url 'orders:create_order' product.id %}" class="btn btn-sm btn-outline-light rounded-pill px-3" target="_blank">
+                                        <i class="bi bi-eye me-1"></i> 查看
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

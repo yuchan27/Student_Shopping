@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+    /* 使用 ID (#id_description) 加上 !important，這是 CSS 中最強的命令 */
+    
+    /* 1. 控制輸入框本體 (背景深藍、打字變白) */
+    #id_description {
+        background-color: #1c3b63 !important; /* 跟你的背景圖一樣的深藍 */
+        color: #ffffff !important;            /* 使用者打的字變白色 */
+        border: 1px solid #5c7cfa !important; /* 邊框亮一點 */
+    }
+
+    /* 2. 控制提示文字 (Placeholder) 顏色 */
+    #id_description::placeholder {
+        color: #cfd8dc !important;  /* 極亮的淺灰色，確保看得到 */
+        opacity: 1 !important;      /* 強制不透明 */
+    }
+
+    
+</style>
+<div class="container-fluid py-5 px-lg-5"> 
+    <div class="row justify-content-center g-4 align-items-start">
+        
+        <div class="col-auto">
+            <div class="card shadow-sm mb-4 main-form-card">
+                <div class="card-header bg-warning text-dark fw-bold text-center py-3 rounded-top-4">
+                    <h4 class="mb-0"><i class="bi bi-plus-lg"></i> 上架新商品</h4>
+                </div>
+                
+                <div class="card-body p-4 flat-top">
+                    <form method="post" enctype="multipart/form-data" id="productForm">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label fw-bold">商品分類</label>
+                            {{ form.category }} 
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">商品名稱 / ISBN</label>
+                            <div class="input-group">
+                                {{ form.name }}
+                                <button type="button" class="btn btn-outline-dark text-white" onclick="searchBookInfo(this)">
+                                    🔍 查詢
+                                </button>
+                            </div>
+                            <div class="form-text text-muted">
+                                輸入名稱後點擊查詢，右側顯示行情。
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.price.id_for_label }}" class="form-label fw-bold">價格 (NT$)</label>
+                            {{ form.price }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.stock.id_for_label }}" class="form-label fw-bold">庫存數量</label>
+                            {{ form.stock }}
+                        </div>
+
+                        <div class="mb-3"> 
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">商品描述</label>
+                            {{ form.description }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.image.id_for_label }}" class="form-label fw-bold">商品圖片</label>
+                            {{ form.image }}
+                            <div class="form-text text-muted">支援 jpg, png 格式</div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">確認上架</button>
+                            <a href="/" class="btn btn-outline-secondary">取消</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-auto d-none" id="referenceSection">
+            <div class="sticky-top" style="top: 20px; z-index: 100;">
+                
+                <div class="card shadow-sm bg-light border-0 mb-3 reference-card">
+                    <div class="card-header bg-secondary text-white fw-bold py-2 rounded-top-4">
+                        <i class="bi bi-graph-up-arrow"></i> 市場行情參考
+                        <button type="button" class="btn-close btn-close-white float-end" onclick="closeReference()" aria-label="Close"></button>
+                    </div>
+                    <div class="card-body p-2 flat-top" style="max-height: 60vh; overflow-y: auto;">
+                        <p class="small text-muted mb-2 text-center" id="searchMsg">
+                            搜尋結果...
+                        </p>
+                        <div id="referenceList" class="d-flex flex-column gap-2">
+                            </div>
+                    </div>
+                </div>
+
+                <div id="selectedInfoBox" class="reference-info-box reference-card d-none">
+                    <h5 class="fw-bold border-bottom pb-2 mb-2"><i class="bi bi-info-circle"></i> 已選參考資訊</h5>
+                    <div id="selectedInfoContent"></div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// === 1. 自動調整 textarea 高度 ===
+document.addEventListener("DOMContentLoaded", function() {
+    const tx = document.getElementById('id_description'); 
+    if (tx) {
+        tx.classList.add('auto-expand');
+        tx.style.height = 'auto';
+        tx.style.height = (tx.scrollHeight) + 'px';
+        
+        tx.addEventListener("input", function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + "px";
+        });
+    }
+});
+
+// === 2. 搜尋 API 邏輯 ===
+let currentSearchResults = [];
+
+function searchBookInfo(btn) {
+    const nameInput = document.getElementById('id_name');
+    const keyword = nameInput.value.trim();
+
+    if (!keyword) {
+        alert('請先輸入商品名稱！');
+        nameInput.focus();
+        return;
+    }
+
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '搜尋中...';
+    
+    // 顯示右側
+    const refSection = document.getElementById('referenceSection');
+    refSection.classList.remove('d-none'); 
+    document.getElementById('referenceList').innerHTML = '<div class="text-center py-4 text-muted">正在分析市場價格...</div>';
+
+    const formData = new FormData();
+    formData.append('keyword', keyword);
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    formData.append('csrfmiddlewaretoken', csrfToken);
+
+    fetch('{% url "products:magic_fill" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+
+        if (data.status === 'success' && data.data.length > 0) {
+            currentSearchResults = data.data; 
+            renderReferenceList(data.data);
+            document.getElementById('searchMsg').innerText = `✅ 找到 ${data.data.length} 筆資料`;
+        } else {
+            document.getElementById('referenceList').innerHTML = 
+                '<div class="alert alert-warning text-center">❌ 找不到商品</div>';
+        }
+    })
+    .catch(error => {
+        console.error(error);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+}
+
+function renderReferenceList(items) {
+    const container = document.getElementById('referenceList');
+    container.innerHTML = ''; 
+
+    items.forEach((item, index) => {
+        const cardHtml = `
+            <div class="card border-0 shadow-sm">
+                <div class="row g-0 align-items-center">
+                    <div class="col-3 p-2 text-center">
+                        <img src="${item.image}" class="img-fluid rounded" style="max-height: 60px; object-fit: contain;" alt="圖">
+                    </div>
+                    <div class="col-9">
+                        <div class="card-body p-2">
+                            <h6 class="card-title text-truncate mb-1" style="font-size: 0.9rem;">
+                                ${item.title}
+                            </h6>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-danger fw-bold">$${item.price}</span>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="applyData(${index})">
+                                    帶入 <i class="bi bi-arrow-left"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.innerHTML += cardHtml;
+    });
+}
+
+// === 3. 帶入資料與自動分類 ===
+function applyData(index) {
+    const item = currentSearchResults[index];
+    if (!item) return;
+
+    // 帶入價格
+    const priceField = document.getElementById('id_price');
+    priceField.value = item.price; 
+    flashField(priceField);
+
+    // 帶入名稱 & 觸發自動分類
+    const nameField = document.getElementById('id_name');
+    if (confirm(`將名稱更改為：\n"${item.title}" 嗎？`)) {
+        nameField.value = item.title;
+        flashField(nameField);
+
+        // [補回] 觸發自動分類
+        autoSelectCategory(item.title);
+    }
+
+    // 更新右下角黃色資訊框
+    const infoBox = document.getElementById('selectedInfoBox');
+    const infoContent = document.getElementById('selectedInfoContent');
+    
+    infoBox.classList.remove('d-none');
+    infoContent.innerHTML = `
+        <p class="mb-1"><strong>品名：</strong> ${item.title}</p>
+        <p class="mb-1"><strong>參考市價：</strong> <span class="text-danger">$${item.price}</span></p>
+        <p class="mb-2"><strong>來源：</strong> ${item.source}</p>
+        <div class="border-top pt-2 mt-2">
+            <p class="mb-0 text-danger fw-bold small">
+                <i class="bi bi-asterisk"></i> 請依照商品參考價格做出調整
+            </p>
+        </div>
+    `;
+}
+
+// 自動分類邏輯函式
+function autoSelectCategory(title) {
+    const categorySelect = document.getElementById('id_category'); 
+    if (!categorySelect) return;
+
+    const lowerTitle = title.toLowerCase();
+    let targetKeyword = [];
+
+    // === 關鍵字設定區 (請依您資料庫真實分類調整) ===
+    if (lowerTitle.match(/iphone|小米|紅米/)) {
+        targetKeyword = ["手機"]; 
+    } 
+    else if (lowerTitle.match(/mac|asus|acer|微星|羅技|鍵盤|滑鼠|耳機|airpods|ipad|平板|電腦|筆電/)) {
+        targetKeyword = ["3C"];
+    }  
+    else if (lowerTitle.match(/冰箱|空氣清淨機|除濕機|風扇/)) {
+        targetKeyword = ["家電"];
+    } 
+    else if (lowerTitle.match(/python|java|c\+\+|微積分|經濟學|課本|參考書|多益|檢定|小說|漫畫/)) {
+        targetKeyword = ["圖書"];
+    }
+    else if (lowerTitle.match(/衣|褲|鞋|帽|包|裙|外套/)) {
+        targetKeyword = ["服飾"];
+    }
+    else if (lowerTitle.match(/衛生紙|桌|椅|櫃|燈|風扇|吹風機/)) {
+        targetKeyword = ["家具"];
+    }
+    else if (lowerTitle.match(/飲料|食物|調理包/)) {
+        targetKeyword = ["食品"];
+    }else {
+        targetKeyword = ["雜項"];
+    }
+
+    // 執行比對與選取
+    if (targetKeyword.length > 0) {
+        for (let i = 0; i < categorySelect.options.length; i++) {
+            const optionText = categorySelect.options[i].text;
+            const isMatch = targetKeyword.some(k => optionText.includes(k));
+            
+            if (isMatch) {
+                categorySelect.selectedIndex = i;
+                flashField(categorySelect);
+                console.log(`已自動分類至: ${optionText}`);
+                break; 
+            }
+        }
+    }
+}
+
+function flashField(element) {
+    element.style.transition = "background-color 0.3s";
+    element.style.backgroundColor = "#d1e7dd"; 
+    setTimeout(() => {
+        element.style.backgroundColor = "";
+    }, 1000);
+}
+
+function closeReference() {
+    document.getElementById('referenceSection').classList.add('d-none');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-primary text-white text-center py-3 rounded-top-4">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-bag-check-fill"></i> 確認訂單內容</h4>
+                </div>
+                
+                <div class="card-body p-4 flat-top">
+                    <div class="d-flex align-items-center mb-4 ">
+                        <div class="flex-shrink-0 me-3">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="rounded border" style="width: 80px; height: 80px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light rounded border d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i class="bi bi-box-seam text-secondary fs-2"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="flex-grow-1 overflow-hidden">
+                            <h5 class="fw-bold mb-1 text-truncate">{{ product.name }}</h5>
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-shop"></i> 賣家: {{ product.shop.name }}
+                            </p>
+                            <span class="badge bg-light text-dark border">庫存: {{ product.stock }}</span>
+                        </div>
+                    </div>
+
+                    <form method="post" id="buyForm" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label for="phone" class="form-label fw-bold small text-muted">訂購人聯絡電話</label>
+                            <div class="input-group has-validation text-bright">
+                                <span class="input-group-text bg-light"><i class="bi bi-telephone"></i></span>
+                                <input type="tel" 
+                                       name="phone" 
+                                       id="phone" 
+                                       class="form-control" 
+                                       placeholder="09xx-xxx-xxx" 
+                                       value="{{ request.user.phone|default:'' }}"  maxlength="10"
+                                       inputmode="numeric"
+                                       required>
+                                <div class="invalid-feedback">
+                                    請輸入正確的手機號碼 (09開頭，共10碼數字)
+                                </div>
+                            </div>
+                            <div class="form-text text-muted small mt-1">
+                                * 我們將會透過此電話聯繫您確認訂單細節
+                            </div>
+                        </div>
+                        <div class="p-3 rounded mb-4">
+                            <div class="d-flex justify-content-between mb-2 small text-muted">
+                                <span>商品單價</span>
+                                <span>${{ product.price }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 small text-muted">
+                                <span>購買數量</span>
+                                <span>1</span>
+                            </div>
+                            <hr class="my-2 dashed">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">總付款金額</span>
+                                <span class="text-danger fw-bold fs-4">${{ product.price }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm">
+                                <i class="bi bi-lightning-fill"></i> 確認立即購買
+                            </button>
+
+                            <a href="{% url 'orders:add_to_cart' product.id %}" class="btn btn-outline-primary btn-lg fw-bold shadow-sm">
+                                <i class="bi bi-cart-plus"></i> 先加入購物車
+                            </a>
+                            
+                            <a href="javascript:history.back()" class="btn btn-link text-secondary text-decoration-none mt-2">
+                                取消，再逛逛
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="text-center mt-3 text-muted small">
+                <i class="bi bi-shield-lock"></i> 交易過程由系統全程加密保護
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const phoneInput = document.getElementById('phone');
+    const form = document.getElementById('buyForm');
+
+    // 1. 限制只能輸入數字 (即時過濾)
+    phoneInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        // 輸入時如果已經錯誤，且現在格式對了，就移除紅框
+        if (this.classList.contains('is-invalid')) {
+            if (/^09\d{8}$/.test(this.value)) {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        }
+    });
+
+    // 2. 表單送出前檢查
+    form.addEventListener('submit', function(e) {
+        const phone = phoneInput.value;
+        // Regex: 09開頭，後面接8個數字，總共10碼
+        const regex = /^09\d{8}$/;
+
+        if (!regex.test(phone)) {
+            e.preventDefault(); // 阻止送出
+            e.stopPropagation();
+            
+            // 顯示紅框與錯誤訊息
+            phoneInput.classList.remove('is-valid');
+            phoneInput.classList.add('is-invalid');
+            
+            // 震動提示 (如果裝置支援)
+            if(navigator.vibrate) navigator.vibrate(200);
+            
+            alert('請確認手機號碼格式正確！\n需為 09 開頭的 10 碼數字。');
+            phoneInput.focus();
+        }
+    });
+});
+</script>
+{% endblock %}

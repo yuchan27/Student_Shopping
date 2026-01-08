@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="mb-5 position-relative">
+                <h2 class="fw-bold text-white d-flex align-items-center text-uppercase" style="letter-spacing: 2px;">
+                    <span class="me-3 rounded-1" 
+                          style="width: 6px; height: 40px; background: var(--shopee-purple); box-shadow: 0 0 15px var(--shopee-purple);">
+                    </span>
+                    <div>
+                        交易歷史紀錄 <span class="text-muted fs-5 ms-2 opacity-50">TRANSACTION LOGS</span>
+                    </div>
+                </h2>
+                <div class="mt-2 w-100" style="height: 1px; background: linear-gradient(90deg, var(--shopee-purple), transparent);"></div>
+            </div>
+
+            {% if orders %}
+                <div class="d-flex flex-column gap-4">
+                    {% for order in orders %}
+                    
+                    <div class="hero-glass rounded-4 overflow-hidden position-relative" 
+                         style="border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                        
+                        <div class="position-absolute top-0 start-0 w-100" style="height: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);"></div>
+
+                        <div class="card-header border-bottom border-secondary d-flex flex-wrap justify-content-between align-items-center py-3 px-4" 
+                             style="background: rgba(0, 0, 0, 0.3);">
+                            
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge rounded-1 fw-normal px-3 py-2" 
+                                      style="background: rgba(132, 40, 252, 0.2); color: #d0bfff; border: 1px solid rgba(132, 40, 252, 0.3);">
+                                    LOG #{{ forloop.revcounter }}
+                                </span>
+                                
+                                <span class="text-secondary small font-monospace">
+                                    <i class="bi bi-clock-history me-1"></i>{{ order.created_at|date:"Y-m-d H:i" }}
+                                </span>
+                            </div>
+
+                            <div class="mt-2 mt-sm-0">
+                                <span class="badge rounded-pill border status-badge px-3 py-2
+                                    {% if order.status == 'completed' %}border-success text-success bg-success-subtle
+                                    {% elif order.status == 'pending' %}border-warning text-warning bg-warning-subtle
+                                    {% else %}border-info text-info bg-info-subtle{% endif %}">
+                                    <i class="bi bi-activity me-1"></i>
+                                    {{ order.get_status_display|default:order.status }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-0">
+                            <div class="list-group list-group-flush">
+                                {% for item in order.items.all %}
+                                <div class="list-group-item px-4 py-3 border-bottom border-secondary item-row" 
+                                     style="background: transparent; transition: all 0.2s;">
+                                    <div class="d-flex align-items-center">
+                                        
+                                        <div class="flex-shrink-0 position-relative">
+                                            {% if item.product and item.product.image %}
+                                                <a href="{% url 'products:product_detail' item.product.id %}" class="d-block">
+                                                    <img src="{{ item.product.image.url }}" class="rounded-3 shadow-sm" 
+                                                         style="width: 70px; height: 70px; object-fit: cover; border: 1px solid rgba(255,255,255,0.1);">
+                                                </a>
+                                            {% else %}
+                                                <div class="rounded-3 d-flex align-items-center justify-content-center bg-dark border border-secondary" 
+                                                     style="width: 70px; height: 70px;">
+                                                    <i class="bi bi-box-seam text-muted fs-4"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="flex-grow-1 ms-3 ms-md-4">
+                                            <h5 class="mb-1">
+                                                {% if item.product %}
+                                                    <a href="{% url 'products:product_detail' item.product.id %}" 
+                                                       class="text-white text-decoration-none product-link fw-bold">
+                                                        {{ item.product.name }}
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted text-decoration-line-through fst-italic">
+                                                        {{ item.product_name|default:"此商品已下架" }}
+                                                    </span>
+                                                {% endif %}
+                                            </h5>
+                                            
+                                            <p class="mb-0 text-muted small font-monospace">
+                                                <i class="bi bi-shop me-1"></i>
+                                                {% if item.product and item.product.shop %}
+                                                    VENDOR: {{ item.product.shop.name }}
+                                                {% else %}
+                                                    SYSTEM: UNKNOWN
+                                                {% endif %}
+                                            </p>
+                                        </div>
+
+                                        <div class="text-end ms-3">
+                                            <div class="badge bg-secondary bg-opacity-25 text-light mb-1 border border-secondary">
+                                                x{{ item.quantity }}
+                                            </div>
+                                            <div class="fw-bold fs-5" style="color: var(--neon-green); text-shadow: 0 0 5px rgba(0, 255, 204, 0.3);">
+                                                ${{ item.price }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="card-footer border-0 d-flex justify-content-end align-items-center py-3 px-4" 
+                             style="background: linear-gradient(90deg, rgba(0,0,0,0.2), rgba(0,0,0,0.5));">
+                            <span class="text-uppercase text-muted small me-3 letter-spacing-1">Total Amount</span>
+                            <span class="fs-2 fw-bold text-white d-flex align-items-start" style="line-height: 1;">
+                                <small class="fs-6 mt-1 me-1 text-secondary">$</small>
+                                <span style="text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);">{{ order.total_price }}</span>
+                            </span>
+                        </div>
+                    </div> 
+                    {% endfor %}
+                </div>
+
+            {% else %}
+                <div class="text-center py-5 hero-glass rounded-4 mt-4 border border-secondary position-relative overflow-hidden">
+                    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at center, rgba(132, 40, 252, 0.1) 0%, transparent 70%);"></div>
+                    
+                    <div class="position-relative z-1">
+                        <i class="bi bi-database-x text-secondary opacity-50" style="font-size: 5rem;"></i>
+                        <h4 class="mt-4 text-white fw-bold">NO DATA FOUND</h4>
+                        <p class="text-muted font-monospace">Transaction history is empty.</p>
+                        
+                        <a href="/" class="btn btn-lg fw-bold mt-3 rounded-pill position-relative overflow-hidden group-hover-glow" 
+                           style="background: transparent; border: 1px solid var(--neon-green); color: var(--neon-green);">
+                            <span class="position-relative z-1"><i class="bi bi-cart-plus me-2"></i>INITIATE SHOPPING</span>
+                            <div class="hover-bg"></div>
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

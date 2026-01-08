@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-11">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="border-start border-4 border-success ps-3 text-white">📊 商店訂單管理</h2>
+            <a href="{% url 'shops:shop_detail' user.shop.id %}" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left"></i> 返回商店首頁
+            </a>
+        </div>
+
+        {% if sold_items %}
+            <div class="card shadow bg-transparent border-secondary">
+                <div class="card-body p-0 rounded-top-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 text-white">
+                            <thead class="text-white-50 border-bottom border-secondary">
+                                <tr>
+                                    <th class="fw-normal">訂單編號</th>
+                                    <th class="fw-normal">商品名稱</th>
+                                    <th class="fw-normal">買家資訊</th>
+                                    <th class="fw-normal">聯絡電話</th>
+                                    <th class="fw-normal">數量</th>
+                                    <th class="fw-normal">銷售金額</th>
+                                    <th class="fw-normal">下單時間</th>
+                                    <th class="fw-normal">狀態</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in sold_items %}
+                                <tr class="border-bottom border-secondary" style="color: white !important;">
+                                    <td class="text-white-50">#{{ item.order.id }}</td>
+                                    
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.product.image %}
+                                                <img src="{{ item.product.image.url }}" class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% endif %}
+                                            <span class="fw-bold text-white">{{ item.product.name }}</span>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        <div class="d-flex align-items-center text-white">
+                                            <i class="bi bi-person-circle text-white-50 me-2"></i> 
+                                            {{ item.order.buyer.username }}
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        <span class="text-info fw-bold">{{ item.order.phone|default:"未提供" }}</span>
+                                    </td>
+                                    
+                                    <td class="text-white">{{ item.quantity }}</td>
+                                    
+                                    <td>
+                                        <span class="text-warning fw-bold">${{ item.total }}</span>
+                                    </td>
+                                    
+                                    <td class="small text-white-50">{{ item.order.created_at|date:"Y/m/d H:i" }}</td>
+                                    
+                                    <td>
+                                        <span class="badge bg-light text-dark fw-bold">{{ item.order.status }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-dark text-center py-5 border-secondary">
+                <h4 class="text-white">目前還沒有收到訂單 🍃</h4>
+                <p class="text-white-50">別氣餒，持續上架好商品，客人馬上就來！</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    /* 額外小修正：確保表格 hover 時不會變黑 */
+    .table-hover tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        color: white !important;
+    }
+    /* 強制所有表格內文字繼承白色 */
+    .table td, .table th {
+        color: white;
+    }
+</style>
+{% endblock %}
